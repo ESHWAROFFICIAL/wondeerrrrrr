@@ -1,0 +1,84 @@
+<header>
+      <img     src="https://cdn.progradjunior.org/greetn/greetnlogo.svg" alt="logo"/>
+    </header>
+    <div class="background-holder">
+<!--   iteration 1: Enter images here -->
+      <img src="https://cdn.progradjunior.org/greetn/b1.png" alt="" id="bg1">
+      <img src="https://cdn.progradjunior.org/greetn/b2.png" alt="" id="bg2">
+      <img src="https://cdn.progradjunior.org/greetn/b3.png" alt="" id="bg3">
+       </div>
+    <div class="greeting-container">
+      <div id="card">
+        <span id="cardText"></span>
+      </div>
+      <div class="message">
+        <!-- Iteration 2: Setup the message area -->
+        <h3>Add a message to your card</h3>
+        <textarea name="" id="message" cols="" rows=""></textarea>
+        <div id="button">Genrate card</div>
+      </div>
+    </div>
+    
+    
+    
+    
+    html
+    
+    
+    
+    
+    #card {
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+/* Iteration 3: Style the button  */
+#button{
+  background-color : magenta;
+  height:50px;
+  width:180px;
+  color:white;
+  text-align:center;
+  line-height:50px;
+  border-radius:4px;
+  cursor:pointer;
+    
+}
+
+
+
+
+
+css
+
+
+
+
+
+// Iteration 4: Setup background swith
+const bg1=document.getElementById("bg1");
+const bg2=document.getElementById("bg2");
+const bg3=document.getElementById("bg3");
+
+bg1.onclick=()=>{
+card.style.backgroundImage=`url(${bg1.src})`
+};
+bg2.onclick=()=>{
+card.style.backgroundImage=`url(${bg2.src})`
+};
+bg3.onclick=()=>{
+card.style.backgroundImage=`url(${bg3.src})`
+};
+// Iteration 5: Insert text to the card
+const message=document.getElementById("message");
+const button=document.getElementById("button");
+const cardText=document.getElementById("cardText");
+
+button.onclick=()=>{
+cardText.textContent=message.value;
+}
+
+
+
+
+js
