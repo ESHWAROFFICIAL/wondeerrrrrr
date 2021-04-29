@@ -1,0 +1,194 @@
+<div class="MrP">
+  <div class="peye"></div>
+</div>
+
+<div class="ghost">
+  <div class="eye eye2">
+    <div class="pupil pupil2"></div>
+  </div>
+  <div class="eye">
+    <div class="pupil"></div>
+  </div>
+</div>
+
+<div class="ghost ghost--2">
+  <div class="eye eye2">
+    <div class="pupil pupil2"></div>
+  </div>
+  <div class="eye">
+    <div class="pupil"></div>
+  </div>
+</div>
+
+<div class="ghost ghost--3">
+  <div class="eye eye2">
+    <div class="pupil pupil2"></div>
+  </div>
+  <div class="eye">
+    <div class="pupil"></div>
+  </div>
+</div>
+
+
+
+
+html
+
+
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-image: radial-gradient(blue, black);
+}
+
+@keyframes square {
+  0%,
+  100% {
+    transform: translate(-200%, -200%);
+  }
+  25% {
+    transform: translate(200%, -200%);
+  }
+  50% {
+    transform: translate(200%, 200%);
+  }
+  75% {
+    transform: translate(-200%, 200%);
+  }
+}
+
+@keyframes square2 {
+  0%,
+  100% {
+    transform: translate(-320%, -320%);
+  }
+  25% {
+    transform: translate(320%, -320%);
+  }
+  50% {
+    transform: translate(320%, 320%);
+  }
+  75% {
+    transform: translate(-320%, 320%);
+  }
+}
+
+@keyframes square3 {
+  0%,
+  100% {
+    transform: translate(-440%, -440%);
+  }
+  25% {
+    transform: translate(440%, -440%);
+  }
+  50% {
+    transform: translate(440%, 440%);
+  }
+  75% {
+    transform: translate(-440%, 440%);
+  }
+}
+
+.MrP {
+  display: flex;
+  width: 0;
+  height: 0;
+  border-right: 60px solid transparent;
+  border-top: 60px solid yellow;
+  border-left: 60px solid yellow;
+  border-bottom: 60px solid yellow;
+  border-radius: 60px;
+  position: relative;
+}
+
+.peye {
+  width: 15px;
+  height: 15px;
+  position: absolute;
+  background-color: black;
+  border-radius: 100%;
+  bottom: 15px;
+  right: 1px;
+}
+
+.ghost {
+  background-color: #ff0000;
+  height: 55px;
+  width: 50px;
+  position: absolute;
+  border-radius: 50% 50% 0 0;
+  animation: square 3s infinite linear;
+  -webkit-clip-path: polygon(
+    1% 99%,
+    1% 1%,
+    99% 0%,
+    99% 99%,
+    79% 79%,
+    64% 99%,
+    50% 79%,
+    37% 100%,
+    22% 79%
+  );
+  clip-path: polygon(
+    1% 99%,
+    1% 1%,
+    99% 0%,
+    99% 99%,
+    79% 79%,
+    64% 99%,
+    50% 79%,
+    37% 100%,
+    22% 79%
+  );
+}
+
+.ghost--2 {
+  background-color: #00ffff;
+  animation-direction: reverse;
+  animation-name: square2;
+  animation-duration: 4s;
+}
+
+.ghost--3 {
+  background-color: #ffaf48;
+  animation-name: square3;
+  animation-duration: 5s;
+}
+
+.eye {
+  background-color: white;
+  height: 8px;
+  width: 8px;
+  border-radius: 100%;
+  position: absolute;
+  left: 15px;
+  top: 10px;
+}
+
+.pupil {
+  background-color: blue;
+  height: 4px;
+  width: 4px;
+  border-radius: 100%;
+  position: absolute;
+}
+
+.pupil2 {
+  background-color: blue;
+  height: 4px;
+  width: 4px;
+  border-radius: 100%;
+  position: absolute;
+}
+
+.eye2 {
+  left: 28px;
+}
+
+
+
+css
