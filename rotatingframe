@@ -1,0 +1,178 @@
+<div class="fadeout">
+   <h1>Drag to rotate</h1>
+  <img src="http://sweetandfizzy.com/videofractalcube.jpg">
+</div>
+
+
+
+html
+
+
+
+/* We want our scene to span the entire window */
+body { margin: 0; background:black;text-align:center;}
+ canvas {
+   width:100%;
+   height:100%;
+   margin:0 auto;
+ }
+
+h1 {
+  position:absolute;
+  z-index:10;
+  width:400px;
+  left:-200px;
+  text-align:center;
+}
+img {
+  position:absolute;
+  z-index:1;
+  left:-200px;
+  top:-200px;
+}
+
+.fadeout {
+  pointer-events:none;
+  position: absolute;
+  background-color: black;
+  z-index:100;
+  width:0; height:0; 
+  margin-top:30%;
+  margin-left:50%;
+  overflow:visible;
+  color: #ffffff;
+  background:black;
+  font-size: large;
+  font-family: helvetica;
+  text-align: center;
+  opacity: 0;
+    -webkit-animation: fadeout 4s 1s; /* Safari, Chrome and Opera > 12.1 */
+       -moz-animation: fadeout 4s 1s; /* Firefox < 16 */
+        -ms-animation: fadeout 4s 1s; /* Internet Explorer */
+         -o-animation: fadeout 4s 1s; /* Opera < 12.1 */
+            animation: fadeout 4s 1s;
+}
+
+@keyframes fadeout {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+
+
+css
+
+
+
+
+
+
+///////////////////This is the basic scene setup
+var m=1; //magnitude
+var h1 = h2=0;
+m = window.innerHeight / 512;
+
+var SW = 512*m, SH = 512*m, count = 0;
+var scene = new THREE.Scene();
+var width = 512*m;
+var height = 512*m;
+var camera = new THREE.PerspectiveCamera(50, SW / SH, 1, 1000);// fov, aspect, near/far clip planes
+camera.position.z = 5;
+
+var renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setSize( SW, SH );
+renderer.setClearColor (0x000000, 1);
+
+document.body.appendChild( renderer.domElement );
+
+// orbit controls are like a trackball that rotates camera around cube:
+controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.zoomSpeed = .0125; 
+var ambientLightA = new THREE.AmbientLight( 0xffffff ); // soft white light
+scene.add( ambientLightA );
+
+var directionalLightA = new THREE.DirectionalLight(0xffffff, 0.1);
+directionalLightA.position.set(0, 0, 5);
+scene.add(directionalLightA);
+
+///////////////////This is where we create our off-screen render target
+//Create a different scene to hold our buffer objects
+var bufferScene = new THREE.Scene();
+
+//lighting for off-screen render target
+var ambientLight = new THREE.AmbientLight( 0xffffff ); // soft white light
+bufferScene.add( ambientLight );
+
+//Create the texture that will store our result. Two render textures are necessary to do feedback, and the render loop will ping-pong between rendering the two, and applying the render the the surfaces of the cube:
+var bufferTexture = [];
+bufferTexture[0] = new THREE.WebGLRenderTarget( width, height, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter}); // THREE.NearestFilter
+bufferTexture[1] = new THREE.WebGLRenderTarget( width, height, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter});
+
+//Let's create a box for off-screen rendering, with a texture from the render target feedback buffer (this gives us the feeback effect):
+var loopMaterial = new THREE.MeshLambertMaterial({map:bufferTexture[0].texture});
+let boxsize = 3.176;
+var boxGeometry = new THREE.BoxGeometry( boxsize,boxsize,boxsize );
+var boxObject = new THREE.Mesh( boxGeometry, loopMaterial );
+bufferScene.add(boxObject);//We add it to the bufferScene instead of the normal scene!
+
+//Colored plane behind feedback cube. We will alternate and cycle color of this plane in the render loop:
+var colorMaterial = new THREE.MeshBasicMaterial({color:0xb300b1 });
+var plane = new THREE.PlaneBufferGeometry( width, height );
+var planeObject = new THREE.Mesh(plane,colorMaterial);
+planeObject.position.z = -25;
+bufferScene.add(planeObject);//We add it to the bufferScene instead of the normal scene!
+
+//Now we use our bufferTexture as a material to render it onto our main scene, this is the main box object on-screen:
+var boxMaterial = new THREE.MeshLambertMaterial({map:bufferTexture[0].texture});
+var boxGeometry2 = new THREE.BoxGeometry( 2.25, 2.25, 2.25 );
+var mainBoxObject = new THREE.Mesh(boxGeometry2,boxMaterial);
+scene.add(mainBoxObject);
+
+
+//Render everything!
+function render() {
+  // request animation frame loops the render() call at steady intervals:
+  requestAnimationFrame( render );
+  
+  //Rotate the main box
+  mainBoxObject.rotation.y += 0.00007;
+  mainBoxObject.rotation.x += 0.00005;
+  mainBoxObject.rotation.z += 0.0001;
+
+  //Rotate the feedback box object the same as main box object:
+  boxObject.rotation.y = mainBoxObject.rotation.y;
+  boxObject.rotation.x = mainBoxObject.rotation.x;
+  boxObject.rotation.z = mainBoxObject.rotation.z;
+
+  // keep our background plane pointing at camera at all times
+  planeObject.lookAt(camera.position);
+  planeObject.position.copy(camera.position);
+  planeObject.position.negate();
+
+  // this updates the laternating and cycling background hues
+  colorMaterial.color = (count==0)? new THREE.Color("hsl("+h1+", 100%, 50%)"): new THREE.Color("hsl("+h2+", 100%, 50%)");
+
+  // change our hues for next render - the modulo(%) keeps values in 0-360 range:
+  h1+=359.5; 
+  h2+=.11;
+  h2%-360;
+  h1%=360;
+
+  //Render on to our off screen texture (selected with 'count'):
+  renderer.render(bufferScene, camera, bufferTexture[count]);
+  
+  //copy rendered texture to cube material texture map
+  loopMaterial.map = bufferTexture[count].texture;
+
+  //Finally, draw to the screen
+  renderer.render( scene, camera );
+
+  // count alternates between 0 and 1, so that the bufferTexture used is ping-ponged:
+  count++;
+  count%=2;
+}
+render();
+
+
+
+js
