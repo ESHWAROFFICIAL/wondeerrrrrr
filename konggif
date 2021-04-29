@@ -1,0 +1,750 @@
+<div id="container">
+  <div class="platforms">
+    <div class="platform">
+      <div class="platform-line"></div>
+      <div class="platform-line"></div>
+      <div class="platform-line"></div>
+      <div class="platform-line"></div>
+      <div class="platform-line"></div>
+      <div class="platform-line"></div>
+      <div class="platform-line"></div>
+      <div class="platform-line"></div>
+    </div>
+    <div class="platform">
+      <div class="platform-line"></div>
+      <div class="platform-line"></div>
+      <div class="platform-line"></div>
+      <div class="platform-line"></div>
+      <div class="platform-line"></div>
+      <div class="platform-line"></div>
+      <div class="platform-line"></div>
+      <div class="platform-line"></div>
+    </div>
+  </div>
+  <div class="donkey-kong">
+    
+    <div class="body">
+      
+      <div class="head">
+        
+      <div class="face">
+        <div class="eye"></div>
+        <div class="eye"></div>
+        <div class="nose"></div>
+        <div class="teeth">
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+        </div>
+      </div>
+      <div class="ears">
+        <div class="ear"></div>
+        <div class="ear"></div>
+      </div>
+    </div>
+      
+      <div class="chest">
+        <div class="part"></div>
+        <div class="part"></div>
+      </div>
+      <div class="arms">
+        <div class="arm"></div>
+        <div class="arm"></div>
+      </div>
+      
+      <div class="hands">
+        <div class="hand"></div>
+        <div class="hand"></div>
+      </div>
+      
+      <div class="barrel">
+        <div class="barrel shape">
+          <div class="barrel-line"></div>
+          <div class="barrel-line"></div>
+          <div class="barrel-line"></div>
+          <div class="barrel-line"></div>
+          <div class="barrel-line"></div>
+        </div>
+      </div>
+      
+      <div class="legs">
+        <div class="leg">
+          <div class="zigzag"></div>
+        </div>
+        <div class="leg">
+          <div class="zigzag"></div>
+        </div>
+        <div class="feet">
+          <div class="foot"></div>
+          <div class="foot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="shadow"></div>
+  </div>
+</div>
+
+
+
+html
+
+
+
+
+$width: 25rem;
+$height: 18.75rem;
+
+$orange: #f6892e;
+$platform: #e47935;
+$brown: #964833;
+$white: #fff;
+$black: #000;
+$dark-brown: #723021;
+$nose: #dd8456;
+$skin: #f9aa7d;
+$skin-shadow: #dd8456;
+$skin-chest: #bd6742;
+$barrel: #db4d26;
+$blue: #3356a6;
+$dark-orange: #b73d26;
+
+* {
+  box-sizing: border-box;
+  &::before, &::after {
+    box-sizing: border-box;
+  }
+}
+
+body {
+  min-height: 100vh;
+  background: $orange;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 0.625rem;
+  grid-template-areas: ". main main ." ". main main .";
+}
+
+#container {
+  width: $width;
+  height: $height;
+  margin: 0;
+  grid-area: main;
+  align-self: center;
+  justify-self: center;
+}
+
+.platforms {
+  position: absolute;
+}
+
+.platform {
+  position: inherit;
+  z-index: -1;
+  top: 4.25rem;
+  width: $width;
+  height: 0.625rem;
+  background: $platform;
+  &::before {
+    position: absolute;
+    content: '';
+    top: 2.8rem;
+    width: inherit;
+    height: inherit;
+    background: inherit;
+  }
+  &:nth-child(2) {
+    top: 10.9rem;
+  }
+}
+
+.platform-line {
+  position: absolute;
+  top: 1.45rem;
+  left: -0.25rem;
+  width: 4.25rem;
+  height: 0.6rem;
+  background: inherit;
+  &:nth-child(odd) {
+    transform: rotate(38deg);
+  }
+  &:nth-child(even) {
+    transform: rotate(-38deg);
+  }
+  &:nth-child(2) {
+    left: 2.6rem;
+  }
+  &:nth-child(3) {
+    left: 5.9rem;
+  }
+  &:nth-child(4) {
+    left: 9.1rem;
+  }
+  &:nth-child(5) {
+    left: 12.4rem;
+  }
+  &:nth-child(6) {
+    left: 14.9rem;
+  }
+  &:nth-child(7) {
+    left: 18.2rem;
+  }
+  &:nth-child(8) {
+    left: 21rem;
+  }
+}
+
+.donkey-kong {
+  position: absolute;
+}
+
+.head {
+  position: absolute;
+  top: -6.85rem;
+  left: 2rem;
+  width: 5.7rem;
+  height: 7rem;
+  background: $brown;
+  border-radius: 2rem;
+  animation: headDown 2.5s ease infinite;
+  &::before {
+    position: absolute;
+    content: '';
+    top: -0.45rem;
+    left: 2.25rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    background: $brown;
+    border-radius: 50%;
+  }
+  &::after {
+    position: absolute;
+    content: '';
+    top: -0.45rem;
+    left: 2.7rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    background: $brown;
+    border-radius: 50%;
+  }
+}
+
+.face {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  width: 2.25rem;
+  height: 2.5rem;
+  background: $skin;
+  border-radius: 1rem 1rem 0 0;
+  &::before {
+    position: absolute;
+    content: '';
+    left: 2rem;
+    width: inherit;
+    height: inherit;
+    background: inherit;
+    border-radius: inherit;
+  }
+  &::after {
+    position: absolute;
+    content: '';
+    z-index: 0;
+    top: 2.175rem;
+    left: -2.95rem;
+    width: 10.125rem;
+    height: 4.5rem;
+    background: $skin;
+    border-radius: 3rem;
+  }
+}
+
+.eye {
+  position: absolute;
+  z-index: 2;
+  top: 1rem;
+  width: 1.7rem;
+  height: 1.6rem;
+  background: $white;
+  border-radius: 50% 0 1rem 1rem;
+  transform: rotate(25deg);
+  &:nth-child(1) {
+    left: 0.5rem;
+    &::before {
+      position: absolute;
+      content: '';
+      top: 0.175rem;
+      left: 0.3rem;
+      width: 1.125rem;
+      height: 1.125rem;
+      background: $black;
+      border-radius: 50%;
+      transform: rotate(-25deg);
+      animation: eyeBig 2.5s ease infinite;
+    }
+    &::after {
+      position: absolute;
+      content: '';
+      top: -0.03rem;
+      left: -0.275rem;
+      width: 2rem;
+      height: 0.425rem;
+      background: $dark-brown;
+      border-radius: 2rem;
+      transform: rotate(0deg);
+    }
+  }
+  &:nth-child(2) {
+    left: 2.05rem;
+    transform: rotate(-25deg);
+    &::before {
+      position: absolute;
+      content: '';
+      top: 0.2rem;
+      left: 0.25rem;
+      width: 1.125rem;
+      height: 1.15rem;
+      background: $black;
+      border-radius: 50%;
+      transform: rotate(-25deg);
+      animation: eyeTwoBig 2.5s ease infinite;
+    }
+    &::after {
+      position: absolute;
+      content: '';
+      top: -0.05rem;
+      left: 0.08rem;
+      width: 1.8rem;
+      height: 0.425rem;
+      background: $dark-brown;
+      border-radius: 2rem;
+      transform: rotate(-2deg);
+    }
+  }
+}
+
+.nose {
+  position: absolute;
+  z-index: 2;
+  top: 1.9rem;
+  left: 1.55rem;
+  width: 1.125rem;
+  height: 0.75rem;
+  background: $nose;
+  border-radius: 1rem;
+}
+
+.teeth {
+  position: absolute;
+  z-index: 1;
+  top: 3rem;
+  left: -1.9rem;
+  width: 8rem;
+  height: 2.85rem;
+  background: $white;
+  border-radius: 2rem;
+  overflow: hidden;
+}
+
+.line {
+  position: absolute;
+  width: 0.25rem;
+  height: 3rem;
+  background: $black;
+  &:nth-child(1) {
+    left: 1rem;
+  }
+  &:nth-child(2) {
+    left: 2.125rem;
+  }
+  &:nth-child(3) {
+    left: 3.25rem;
+  }
+  &:nth-child(4) {
+    left: 4.45rem;
+  }
+  &:nth-child(5) {
+    left: 5.6125rem;
+  }
+  &:nth-child(6) {
+    left: 6.75rem;
+  }
+}
+
+.ear {
+  position: absolute;
+  z-index: -1;
+  top: 1.75rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: $skin;
+  border-radius: 50%;
+  &:nth-child(1) {
+    left: -1.125rem;
+    &::before {
+      position: absolute;
+      content: '';
+      top: 0.625rem;
+      left: 0.625rem;
+      width: 1rem;
+      height: 1rem;
+      background: $skin-shadow;
+      border-radius: inherit;
+    }
+  }
+  &:nth-child(2) {
+    left: 4.35rem;
+    &::before {
+      position: absolute;
+      content: '';
+      top: 0.625rem;
+      left: 0.85rem;
+      width: 1rem;
+      height: 1rem;
+      background: $skin-shadow;
+      border-radius: inherit;
+    }
+  }
+}
+
+.body {
+  position: absolute;
+  z-index: -1;
+  top: 10.75rem;
+  left: 7.6rem;
+  &::before {
+    position: absolute;
+    content: '';
+    z-index: -2;
+    top: -5.3rem;
+    left: -0.5rem;
+    width: 10.75rem;
+    height: 8rem;
+    background: $brown;
+    border-radius: 4rem 4rem 35% 35%;
+    animation: backIn 2.5s ease infinite;
+  }
+  &::after {
+    position: absolute;
+    content: '';
+    z-index: -3;
+    top: -3.75rem;
+    left: -0.5rem;
+    width: 10.75rem;
+    height: 9.5rem;
+    background: $brown;
+    border-radius: 4rem 4rem 40% 40%;
+  }
+}
+
+.chest {
+  position: absolute;
+  z-index: -1;
+  left: 1rem;
+  width: 7.675rem;
+  height: 5.25rem;
+  background: $skin-shadow;
+  border-radius: 0 0 2rem 2rem;
+}
+
+.part {
+  position: absolute;
+  top: 2.45rem;
+  width: 2.55rem;
+  height: 2rem;
+  background: $skin-chest;
+  border-radius: 0.75rem;
+  &:nth-child(1) {
+    left: 1.125rem;
+  }
+  &:nth-child(2) {
+    left: 4rem;
+  }
+}
+
+.arm {
+  position: absolute;
+  z-index: -2;
+  top: -3.25rem;
+  width: 7.3rem;
+  height: 7.3rem;
+  background: $brown;
+  border-radius: 50%;
+  &:nth-child(1) {
+    left: -2.9rem;
+    animation: armMove 2.5s cubic-bezier(0.25, 0.05, 0.25, 1) infinite;
+    &::before {
+      position: absolute;
+      content: '';
+      top: 3.1rem;
+      left: 2.9rem;
+      width: 1rem;
+      height: 1rem;
+      background: $dark-brown;
+      border-radius: inherit;
+      opacity: 1;
+      animation: fadeOut 2.5s ease infinite;
+    }
+  }
+  &:nth-child(2) {
+    left: 5.35rem;
+    animation: armTwoMove 2.5s cubic-bezier(0.25, 0.05, 0.25, 1) infinite;
+    &::before {
+      position: absolute;
+      content: '';
+      top: 3.1rem;
+      left: 3.45rem;
+      width: 1rem;
+      height: 1rem;
+      background: $dark-brown;
+      border-radius: inherit;
+      animation: fadeOut 2.5s ease infinite;
+    }
+  }
+}
+
+.hand {
+  position: absolute;
+  z-index: 3;
+  top: 0.1rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  background: $skin;
+  border-radius: 50%;
+  &:nth-child(1) {
+    left: -1.125rem;
+    animation: handMove 2.5s cubic-bezier(0.25, 0.05, 0.25, 1) infinite;
+  }
+  &:nth-child(2) {
+    left: 6.35rem;
+    animation: handTwoMove 2.5s cubic-bezier(0.25, 0.05, 0.25, 1) infinite;
+  }
+}
+
+.leg {
+  position: absolute;
+  top: 5.25rem;
+  width: 2.75rem;
+  height: 2.125rem;
+  background: $brown;
+  overflow: hidden;
+  &:nth-child(1) {
+    left: 1.85rem;
+  }
+  &:nth-child(2) {
+    left: 5.125rem;
+  }
+}
+
+.zigzag {
+  position: absolute;
+  z-index: 1;
+  top: 0.75rem;
+  width: 1rem;
+  height: 1rem;
+  background: $skin;
+  transform: rotate(45deg);
+  &::before {
+    position: absolute;
+    content: '';
+    top: -0.625rem;
+    left: 0.625rem;
+    width: inherit;
+    height: inherit;
+    background: inherit;
+    transform: rotate(0deg);
+  }
+  &::after {
+    position: absolute;
+    content: '';
+    top: -1.25rem;
+    left: 1.25rem;
+    width: inherit;
+    height: inherit;
+    background: inherit;
+    transform: rotate(0deg);
+  }
+}
+
+.foot {
+  position: absolute;
+  top: 6.25rem;
+  width: 3.8rem;
+  height: 1.125rem;
+  background: $skin;
+  border-radius: 1rem 0 0 1rem;
+  &:nth-child(1) {
+    left: 0.8rem;
+  }
+  &:nth-child(2) {
+    left: 5.125rem;
+    border-radius: 0 1rem 1rem 0;
+  }
+}
+
+.shadow {
+  position: absolute;
+  z-index: -2;
+  top: 17.75rem;
+  left: 6.5rem;
+  width: 11.85rem;
+  height: 0.625rem;
+  background: $platform;
+}
+
+.barrel {
+  position: absolute;
+  z-index: 2;
+}
+
+.barrel.shape {
+  top: 0.1rem;
+  left: 1.5rem;
+  width: 6.75rem;
+  height: 4.6rem;
+  background: $barrel;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  animation: barrelMove 2.5s cubic-bezier(0.25, 0.05, 0.25, 1) infinite;
+}
+
+.barrel-line {
+  position: inherit;
+  width: 1rem;
+  height: 5rem;
+  background: $blue;
+  &:nth-child(1) {
+    left: 1.15rem;
+  }
+  &:nth-child(2) {
+    left: 4.5rem;
+  }
+  &:nth-child(3) {
+    z-index: -1;
+    top: 0.625rem;
+    width: 7rem;
+    height: 0.8rem;
+    background: $orange;
+  }
+  &:nth-child(4) {
+    z-index: -1;
+    top: 3.25rem;
+    width: 7rem;
+    height: 0.8rem;
+    background: $orange;
+  }
+  &:nth-child(5) {
+    z-index: -1;
+    top: 2.28rem;
+    width: 7rem;
+    height: 0.95rem;
+    background: $dark-orange;
+  }
+}
+
+@keyframes headDown {
+  40% {
+    top: -5.3rem;
+  }
+}
+
+@keyframes eyeBig {
+  40% {
+    top: 0.035rem;
+    left: 0.2rem;
+    width: 1.5rem;
+    height: 1.25rem;
+  }
+}
+
+@keyframes eyeTwoBig {
+  40% {
+    top: 0.035rem;
+    left: 0.175rem;
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+}
+
+@keyframes armMove {
+  18%, 36% {
+    top: -9.5rem;
+    height: 11.85rem;
+  }
+  
+  20% {
+    border-radius: 4rem 0 0 4rem;
+  }
+  
+  15%, 37% {
+    width: 3.75rem;
+  }
+}
+
+@keyframes armTwoMove {
+  18%, 36% {
+    top: -9.5rem;
+    height: 11.85rem;
+  }
+  20% {
+    border-radius: 0 4rem 4rem 0;
+  }
+  15%, 37% {
+    left: 8.95rem;
+    width: 3.75rem;
+  }
+}
+
+@keyframes barrelMove {
+  15%, 42% {
+    top: -10.125rem;
+  }
+}
+
+@keyframes handMove {
+  30%, 45% {
+    left: -1.625rem;
+    width: 4.9rem;
+    height: 4.9rem;
+  }
+  15%, 42% {
+    top: -10rem;
+  }
+}
+
+@keyframes handTwoMove {
+  30%, 45% {
+    left: 6.5rem;
+    width: 4.9rem;
+    height: 4.9rem;
+  }
+  
+  15%, 42% {
+    top: -10rem;
+  }
+}
+
+@keyframes backIn {
+  0%, 100% {
+    top: -3.3rem;
+  }
+  25%, 40% {
+    top: -5.3rem;
+  }
+}
+
+@keyframes fadeOut {
+  10%, 55% {
+    opacity: 0;
+  }
+}
+
+
+
+scss
