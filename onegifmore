@@ -1,0 +1,50 @@
+<div id="container"></div>
+
+
+
+html
+
+
+
+body{
+  margin: 0;
+}
+#container{
+  width:400px;
+  height:400px;
+  margin: 50px auto;
+}
+.square{
+  float:left;
+  width:100px;
+  height:100px;
+  margin: 0;
+  background-color:black;
+  animation: rotate 4s linear infinite;
+}
+#container:hover .square{  
+animation-play-state: paused;
+}
+@keyframes rotate{
+  0%{
+    transform:rotate(0deg);
+  }
+  100%{
+    transform:rotate(360deg);
+  }
+}
+
+
+
+css
+
+
+
+$(document).ready(function(){
+  for(var i = 0; i < 16; i++){
+    $('#container').append('<div class="square"></div>');
+  }
+});
+
+
+js
