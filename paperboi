@@ -1,0 +1,1617 @@
+<link href="https://fonts.googleapis.com/css?family=Shrikhand|Audiowide" rel="stylesheet"/>
+<noscript>Please enable JavaScript to play this game</noscript>
+<main id="canvas-wrapper">
+  <canvas id="canvas" width="1600" height="1200">
+  <!-- Table for browser requirements -->
+    <table>
+      <caption>Sorry, your browser does not meet the minimum requirements for this game</caption>
+      <thead>
+        <tr><th>Browser</th><th>Oldest Supported Version</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Internet Explorer</td><td>9.0</td></tr>
+        <tr><td>Firefox</td><td>3.6</td></tr>
+        <tr><td>Chrome</td><td>4.0</td></tr>
+        <tr><td>Safari</td><td>4.0</td></tr>
+        <tr><td>Opera</td><td>10.1</td></tr>
+      </tbody>
+    </table>
+  </canvas>
+</main>
+
+
+
+
+html
+
+
+
+body {
+  overflow: hidden;
+  background: #39E;
+  text-align: center;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+.hide {
+  position: absolute !important;
+  display: block !important;
+  overflow: hidden !important;
+  clip: rect(0,0,0,0) !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  height: 1px !important;
+  width: 1px !important;
+  top: 0 !important;
+  left: -999em !important;
+}
+#canvas-wrapper {
+  position: fixed;
+  overflow: hidden;
+  margin: -300px auto 0;
+  width: 800px;
+  height: 600px;
+  top: 50%;
+  left: 0;
+  right: 0;
+}
+#canvas {
+  position: absolute;
+  background: #000;
+  width: 100%;
+  top: 0;
+  left: 0;
+}
+#canvas table {
+  background: #000;
+  border-collapse: collapse;
+  color: #FFF;
+  font: bold 1em/1.2em Helvetica;
+  letter-spacing: 1px;
+  margin: 16px auto;
+}
+#canvas caption,
+#canvas th,
+#canvas td {
+  background: #000;
+  border: 1px solid #FFF;
+  padding: 1em;
+}
+#canvas td {
+  padding: 0.5em 1em;
+}
+
+
+
+
+css
+
+
+
+
+(function() {
+var context = document.getElementById('canvas').getContext('2d');
+context.lineWidth = 2;
+context.strokeStyle = "#FFF";
+context.fillStyle = "#FFF";
+
+const WINDOW_W = context.canvas.width;
+const WINDOW_H = context.canvas.height;
+const TAU = 2 * Math.PI;
+const DAY_LENGTH = 3 * 60 * 1000; // Length of work day in milliseconds
+
+const MIN_Y = 0.2 * WINDOW_H;
+const MAX_Y = 0.8 * WINDOW_H;
+const START_X = 32.0;
+const START_Y = WINDOW_H / 2;
+
+const FRICTION = 0.9;
+const MAX_SPEED = 4;
+const MAX_FRAMES = 1280;
+const MAX_BOLTS = 32;
+const FIRE_DELAY = 240;
+
+const TOTAL_PAPERS = 16;
+const MAX_PAPERS = 6;
+const PAPER_DELAY = 360;
+const MAX_ENEMY_PULSES = 128;
+const PULSE_SIZE = 6;
+const MAX_ENEMY_SPREAD = 512;
+const SPREAD_SIZE = 3;
+
+const PAPER_W = 6;
+const PAPER_H = 12;
+const BACK_SPEED = 2;
+const MAX_BACK_X = 19200;
+const HOUSE_COUNT = 8;
+
+// Render path for player
+const PLAYER_PATH = new Int32Array([
+   26, -2,
+   16, -2,
+   16, -8,
+   12,-16,
+    8,-14,
+   12, -3,
+   -8, -3,
+   -8, -6,
+  -24, -6,
+  -24,  6,
+   -8,  6,
+   -8,  3,
+   12,  3,
+    8, 14,
+   12, 16,
+   16,  8,
+   16,  2,
+   26,  2
+]);
+const PLAYER_JET_LOW = new Int32Array([
+  -28, -4,
+  -36, -6,
+  -42, -2,
+  -38,  0,
+  -44,  4,
+  -36,  6,
+  -28,  4
+]);
+const PLAYER_JET_HI = new Int32Array([
+  -28, -4,
+  -43, -6,
+  -36, -2,
+  -42,  0,
+  -38,  3,
+  -44,  6,
+  -28,  4
+]);
+
+// Returns an array of points based on the provided coordinates, radians, and source path
+function getRenderPath(source, pos, rad) {
+  var sin = Math.sin(rad);
+  var cos = Math.cos(rad);
+
+  var length = source.length;
+  var path = new Float32Array(length);
+  for (var i = 0; i < length; i += 2) {
+    path[i]     = pos[0] + cos * source[i] + sin * source[i + 1];
+    path[i + 1] = pos[1] + sin * source[i] - cos * source[i + 1];
+  }
+
+  return path;
+}
+
+// Set help to be visible only the first time a user sees the page
+var showHelp = true;
+var saveData = { showHelp: false, highscore: 0 };
+function load() {
+  try {
+    var localItem = window.localStorage.getItem("paper-boy-21");
+
+    if (localItem) {
+      var overwrite = false;
+      saveData = JSON.parse(localItem);
+      if (saveData.showHelp) {
+        showHelp = saveData.showHelp;
+      }
+      else {
+        saveData.showHelp = false;
+        overwrite = true;
+      }
+      if (!saveData.highscore) {
+        saveData.highscore = 0;
+        overwrite = true;
+      }
+      save();
+    }
+    else {
+      save();
+    }
+  }
+  catch (e) {
+    console.error("Error loading paper boy data: ", e)
+  }
+}
+function save() {
+  try {
+    window.localStorage.setItem("paper-boy-21", JSON.stringify(saveData));
+  }
+  catch (e) {
+    console.error("Error saving paper boy data: ", e)
+  }
+}
+load();
+
+var scene = 'title';
+var isPaused = false;
+var backX = 0;
+var player = [ START_X, START_Y * 1.0, 0.0, 0.0 ]; // x, y, xVel, yVel
+var playerLives = 5;
+var playerFrames = MAX_FRAMES;
+var gameOver = false;
+var joystick = [ 0, 0 ]; // xAcc, yAcc
+var inputs = {
+  left: false,
+  right: false,
+  up: false,
+  down: false,
+  fire: false,
+  paperUp: false,
+  paperDown: false
+};
+// TODO: come up with rating system based on ending score
+const LIVES_MULTIPLIER = 10; // Ten points for every remaining life
+const PAPERS_MULTIPLIER = 5; // Five points for every remaining paper
+const TIME_MULTIPLIER = 0.001; // One point for every second
+var scores = {
+  lives: 0,
+  papers: 0,
+  enemies: 0,
+  time: 0,
+  total: 0
+};
+var displayScores = {
+  lives: 0,
+  papers: 0,
+  enemies: 0,
+  time: 0,
+  total: 0
+};
+
+const BIRD_MAX_X = WINDOW_W * 0.75;
+const BIRD_MIN_X = 160;
+const BIRD_FRAMES = 1600;
+const BIRD_CHAR_DELAY = 320;
+const LETTER_DELAY = 5120;
+const CHARGE_DELAY = 240;
+const TWEET_DELAY = 360;
+const TWEET_DURATION = 1024;
+
+var bird = [ WINDOW_W + 128.0, WINDOW_H / 2 + 0.0,-1.0, 0.0 ]; // x, y, xVel, yVel
+var birdFrames = BIRD_FRAMES;
+var birdLife = 60; // Roughly 4 shots per second: divide by four to get time to kill with continuous hits
+var birdCharCountdown = BIRD_CHAR_DELAY;
+var birdCountdown = LETTER_DELAY;
+var birdStage = "entrance"; // letters, charge, recoil, charging tweet, firing tweet, fired tweet
+var fightBird = false;
+
+const TWEET_LENGTH = 44;
+function generateRandomChar() {
+  return String.fromCharCode(65 + (Math.random() * 25 >> 0));
+}
+function generateTweet() {
+  var chars = new Array(TWEET_LENGTH);
+  for (var i = 0; i < TWEET_LENGTH; i++) {
+    chars[i] = generateRandomChar();
+  }
+  return chars.join("");
+}
+var tweet = generateTweet();
+
+function birdCollidesWithPoint(point) {
+  return point[0] > bird[0] - 128 && point[0] < bird[0] + 128 && point[1] > bird[1] - 128 && point[1] < bird[1] + 128;
+}
+function birdCollidesWithRect(rect) {
+  return rect.l > bird[0] - 128 && rect.r < bird[0] + 128 && rect.t > bird[1] - 128 && rect.b < bird[1] + 128;
+}
+function laserCollidesWithPoint(point) {
+  return birdStage === "firing tweet" && point[0] < bird[0] - 128 && point[1] > bird[1] - 10 && point[1] < bird[1] + 10;
+}
+function renderBird() {
+  const BIRD_POINTS = new Int32Array([
+    -128,   0,
+    -108,  -8,
+    -104, -20,
+     -92, -40,
+     -72, -48,
+     -52, -52,
+     -44, -52,
+     -44, -72,
+     -54, -88,
+     -88,-112,
+    -104,-120,
+     -96,-128,
+     -48,-128,
+       0,-104,
+      32, -64,
+      40, -24,
+      64, -16,
+     128, -48,
+     128,  48,
+      64,  16,
+      40,  24,
+      32,  64,
+       0, 104,
+     -48, 128,
+     -96, 128,
+    -104, 120,
+     -88, 112,
+     -54,  88,
+     -44,  72,
+     -44,  52,
+     -52,  52,
+     -72,  48,
+     -92,  40,
+    -104,  20,
+    -108,   8
+  ]);
+  const LENGTH = BIRD_POINTS.length;
+
+  context.beginPath();
+  context.moveTo(bird[0] + BIRD_POINTS[0], bird[1] + BIRD_POINTS[1]);
+  for (var i = 2; i < LENGTH; i += 2) {
+    context.lineTo(bird[0] + BIRD_POINTS[i], bird[1] + BIRD_POINTS[i + 1]);
+  }
+  context.closePath();
+  context.stroke();
+
+  // Render laser
+  var radius = 0;
+  switch (birdStage) {
+    case "charging tweet":
+      radius = birdCountdown > 60 ? 16 * (1 - (birdCountdown - 60) / (TWEET_DELAY - 60)) : 16;
+      break;
+    case "firing tweet":
+      radius = 16;
+      context.font = "40px monospace";
+      // Hitbox
+      context.strokeRect(0, WINDOW_H / 2 - 12, bird[1] - 128, 24);
+      context.fillText(tweet, 0, WINDOW_H / 2 + 12);
+      // Update tweet
+      if (frames % 4 < 2) {
+        tweet = tweet.slice(1) + generateRandomChar();
+      }
+      break;
+    case "fired tweet":
+      radius = birdCountdown > 60 ? 16 * ((birdCountdown - 60) / (TWEET_DELAY - 60)) : 0;
+      break;
+  }
+  if (radius) {
+    context.beginPath();
+    context.arc(bird[0] - 136, bird[1], radius, 0, TAU);
+    context.stroke();
+    context.closePath();
+  }
+}
+
+function BirdChar(x, y) {
+  this.pos = [ x, y ];
+  this.char = generateRandomChar();
+  this.alive = true;
+  return this;
+}
+BirdChar.MAX = 256;
+BirdChar.SIZE = 11;
+// BirdChar.prototype.alive = true;
+BirdChar.prototype.collidesWithPoint = function(point) {
+  return point[0] > this.pos[0] - BirdChar.SIZE && point[0] < this.pos[0] + BirdChar.SIZE && point[1] > this.pos[1] - BirdChar.SIZE && point[1] < this.pos[1] + BirdChar.SIZE;
+}
+BirdChar.prototype.render = function() {
+  // Hitbox
+  // context.strokeRect(this.pos[0] - BirdChar.SIZE, this.pos[1] - BirdChar.SIZE, 2 * BirdChar.SIZE, 2 * BirdChar.SIZE);
+  context.fillText(this.char, this.pos[0], this.pos[1] + 10);
+}
+var enemyChars = new Array(BirdChar.MAX);
+
+var fireCountdown = 0;
+var paperCountdown = 0;
+
+function setToNegative() { return -1; }
+var playerBolts = new Int32Array(2 * MAX_BOLTS).map(setToNegative); // x, y
+var enemyPulses = new Float32Array(4 * MAX_ENEMY_PULSES).map(setToNegative); // x, y, xVel, yVel
+var enemySpread = new Float32Array(4 * MAX_ENEMY_SPREAD).map(setToNegative);
+var paperAmmo = TOTAL_PAPERS;
+var papers = new Float32Array(3 * MAX_PAPERS).map(setToNegative); // x, y, yVel
+
+function squaredDistance(a, b) {
+  return (a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]);
+}
+function isPointInSquare(point, centerX, centerY, size) {
+  return point[0] > centerX - size && point[0] < centerX + size && point[1] > centerY - size && point[1] < centerY + size;
+}
+function doRectsCollide(a, b) {
+  return a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t;
+}
+
+function House(x, isAbove) {
+  this.pos = [ x, isAbove ? 0 : WINDOW_H - House.H ];
+  return this;
+}
+House.W = 96;
+House.H = 56;
+House.areAllServed = function() {
+  for (var i = 0; i < HOUSE_COUNT; i++) {
+    if (!houses[i].served) return false;
+  }
+  return true;
+}
+House.prototype.served = false;
+House.prototype.show = true;
+House.prototype.isVisible = function() {
+  return this.show && backX > this.pos[0] - WINDOW_W && backX < this.pos[0] + House.W;
+}
+House.prototype.render = function(index) {
+  var number = "#" + (index + 1).toString();
+  var x = this.pos[0] - backX;
+  var y = this.pos[1];
+
+  // Hitbox
+  // context.strokeRect(houses[i].pos[0] - backX, houses[i].pos[1], House.W, House.H);
+  // Outline and roof
+  context.beginPath();
+  context.moveTo(x, y + House.H / 4);
+  context.lineTo(x, y + House.H);
+  context.lineTo(x + House.W, y + House.H);
+  context.lineTo(x + House.W, y + House.H / 4);
+  context.moveTo(x - 20, y + House.H / 4 + 8);
+  context.lineTo(x + House.W / 2, y);
+  context.lineTo(x + House.W + 20, y + House.H / 4 + 8);
+  context.stroke();
+  context.closePath();
+
+  if (this.served) {
+    context.beginPath();
+    context.moveTo(x + House.W * 0.3, y + House.H * 0.55);
+    context.lineTo(x + House.W / 2, y + House.H * 0.75);
+    context.lineTo(x + House.W * 0.7, y + House.H * 0.3);
+    context.stroke();
+    context.closePath();
+  }
+  context.fillText(number, x - 96, y + 32);
+}
+
+var houses = [
+  new House(    MAX_BACK_X / 9, true),
+  new House(2 * MAX_BACK_X / 9, false),
+  new House(3 * MAX_BACK_X / 9, true),
+  new House(4 * MAX_BACK_X / 9, false),
+  new House(5 * MAX_BACK_X / 9, true),
+  new House(6 * MAX_BACK_X / 9, false),
+  new House(7 * MAX_BACK_X / 9, false),
+  new House(8 * MAX_BACK_X / 9, true)
+];
+
+function Boombox(x, y) {
+  this.pos = [ x, y ];
+  this.dir = 2 * (Math.random() * 2 >> 0) - 1; // Rotate clock or counter
+
+  return this;
+}
+Boombox.MAX = 12;
+Boombox.W = 24;
+Boombox.H = 40;
+Boombox.FRAMES = 320;
+Boombox.ORBIT_DIST = 256;
+Boombox.ORBIT_DIST_SQ = Boombox.ORBIT_DIST * Boombox.ORBIT_DIST; // Orbit distance squared (squared so calculations are faster)
+Boombox.FIRE_DELAY = 600;
+Boombox.prototype.frames = Boombox.FRAMES;
+Boombox.prototype.countdown = Boombox.FIRE_DELAY;
+Boombox.prototype.isVisible = function() {
+  return this.pos[0] - Boombox.W / 2 < WINDOW_W;
+}
+Boombox.prototype.collidesWithPoint = function(point) {
+  return point[0] > this.pos[0] - Boombox.W / 2 && point[0] < this.pos[0] + Boombox.W / 2 && point[1] > this.pos[1] - Boombox.H / 2 && point[1] < this.pos[1] + Boombox.H / 2;
+}
+Boombox.prototype.collidesWithRect = function(rect) {
+  return this.pos[0] - Boombox.W / 2 < rect.r && this.pos[0] + Boombox.W / 2 > rect.l && this.pos[1] - Boombox.H / 2 < rect.b && this.pos[1] + Boombox.H / 2 > rect.t;
+}
+Boombox.prototype.respawn = function() {
+  this.pos[0] = Boombox.MAX * MAX_BACK_X / (Boombox.MAX + 1);
+  this.pos[1] = Math.random() * (MAX_Y - MIN_Y - Boombox.H) + MIN_Y;
+  this.frames = Boombox.FRAMES;
+  this.countdown = Boombox.FIRE_DELAY;
+  this.dir = 2 * (Math.random() * 2 >> 0) - 1;
+}
+Boombox.prototype.render = function() {
+  var x = this.pos[0];
+  var y = this.pos[1];
+  // Outline
+  context.beginPath();
+  context.moveTo(x - Boombox.W / 2, y + Boombox.H / 2);
+  context.lineTo(x - Boombox.W / 2, y - Boombox.H / 2);
+  context.arc(x + Boombox.W / 2 - 8, y - Boombox.H / 2 + 8, 8, 1.5 * Math.PI, 0);
+  context.arc(x + Boombox.W / 2 - 8, y + Boombox.H / 2 - 8, 8, 0, Math.PI / 2);
+  context.closePath();
+  context.stroke();
+  // Inner lines
+  context.beginPath();
+  context.moveTo(x + 6, y);
+  context.lineTo(x + 6, y + 14);
+  context.moveTo(x, y);
+  context.lineTo(x, y + 16);
+  context.moveTo(x - 6, y);
+  context.lineTo(x - 6, y + 16);
+  context.closePath();
+  context.stroke();
+  // Knob
+  context.beginPath();
+  context.arc(x, y - Boombox.H / 4, 5, 0, TAU);
+  context.stroke();
+  context.closePath();
+  // Antenna
+  context.beginPath();
+  context.moveTo(x + Boombox.W / 2, y - Boombox.H / 2 + 8);
+  context.lineTo(x + Boombox.W / 2 + 16, y - Boombox.H / 2 + 18);
+  context.stroke();
+  context.closePath();
+}
+
+var boomboxes = [
+  new Boombox(WINDOW_W / 2, WINDOW_H / 2),
+  new Boombox(WINDOW_W * 2, WINDOW_H / 2),
+  new Boombox(WINDOW_W * 3, WINDOW_H / 2),
+  new Boombox(WINDOW_W * 4, WINDOW_H / 2),
+  new Boombox(WINDOW_W * 5, WINDOW_H / 2),
+  new Boombox(WINDOW_W * 6, WINDOW_H / 2),
+  new Boombox(WINDOW_W * 7, WINDOW_H / 2),
+  new Boombox(WINDOW_W * 8, WINDOW_H / 2),
+  new Boombox(WINDOW_W * 9, WINDOW_H / 2),
+  new Boombox(WINDOW_W *10, WINDOW_H / 2),
+  new Boombox(WINDOW_W *11, WINDOW_H / 2),
+  new Boombox(WINDOW_W *12, WINDOW_H / 2)
+];
+
+function TVSet(x, y) {
+  this.pos = [ x, y ];
+  var rad = Math.random() * (Math.PI / 4) + 0.75 * Math.PI;
+  this.vel = [ 2 * Math.cos(rad), 2 * Math.sin(rad) ];
+  this.xTarget = WINDOW_W / 2 + Math.random() * (WINDOW_W / 4);
+
+  return this;
+}
+TVSet.MAX = 6;
+TVSet.W = 32;
+TVSet.H = 40;
+TVSet.FRAMES = 320;
+TVSet.FIRE_DELAY = 480;
+TVSet.prototype.frames = TVSet.FRAMES;
+TVSet.prototype.countdown = TVSet.FIRE_DELAY;
+TVSet.prototype.isVisible = function() {
+  return this.pos[0] - TVSet.W / 2 < WINDOW_W;
+}
+TVSet.prototype.collidesWithPoint = function(point) {
+  return point[0] > this.pos[0] - TVSet.W / 2 && point[0] < this.pos[0] + TVSet.W / 2 && point[1] > this.pos[1] - TVSet.H / 2 && point[1] < this.pos[1] + TVSet.H / 2;
+}
+TVSet.prototype.collidesWithRect = function(rect) {
+  return this.pos[0] - TVSet.W / 2 < rect.r && this.pos[0] + TVSet.W / 2 > rect.l && this.pos[1] - TVSet.H / 2 < rect.b && this.pos[1] + TVSet.H / 2 > rect.t;
+}
+TVSet.prototype.respawn = function() {
+  this.pos[0] = TVSet.MAX * MAX_BACK_X / (TVSet.MAX + 1);
+  this.pos[1] = Math.random() * (MAX_Y - MIN_Y - TVSet.H) + MIN_Y;
+  this.frame = TVSet.FRAMES;
+  this.countdown = TVSet.FIRE_DELAY;
+}
+TVSet.prototype.render = function() {
+  var x = this.pos[0];
+  var y = this.pos[1];
+  // Outline
+  context.strokeRect(x - TVSet.W / 2, y - TVSet.H / 2, TVSet.W, TVSet.H);
+  // Screen outline
+  context.beginPath();
+  context.arc(x + 2, y - 10, 6, Math.PI, 1.5 * Math.PI);
+  context.arc(x + 7, y - 10, 6, 1.5 * Math.PI, 0);
+  context.arc(x + 7, y + 10, 6, 0, Math.PI / 2);
+  context.arc(x + 2, y + 10, 6, Math.PI / 2, Math.PI);
+  context.closePath();
+  context.stroke();
+  // Knobs
+  context.beginPath();
+  context.arc(x - 10, y - 12, 3, 0, TAU);
+  context.moveTo(x - 7, y + 12);
+  context.arc(x - 10, y + 12, 3, 0, TAU);
+  context.stroke();
+  context.closePath();
+  // Antenna
+  context.beginPath();
+  context.moveTo(x + TVSet.W / 2, y - 6);
+  context.lineTo(x + TVSet.W / 2 + 12, y - 12);
+  context.moveTo(x + TVSet.W / 2, y + 6);
+  context.lineTo(x + TVSet.W / 2 + 12, y + 12);
+  context.stroke();
+  context.closePath();
+}
+
+var tvSets = [
+  new TVSet(MAX_BACK_X / 7, 0.25 * WINDOW_H),
+  new TVSet(2 * MAX_BACK_X / 7, 0.75 * WINDOW_H),
+  new TVSet(3 * MAX_BACK_X / 7, 0.25 * WINDOW_H),
+  new TVSet(4 * MAX_BACK_X / 7, 0.75 * WINDOW_H),
+  new TVSet(5 * MAX_BACK_X / 7, 0.25 * WINDOW_H),
+  new TVSet(6 * MAX_BACK_X / 7, 0.75 * WINDOW_H),
+];
+
+function updateJoystick() {
+  joystick[0] = 0;
+  if (inputs.left)  joystick[0]--;
+  if (inputs.right) joystick[0]++;
+
+  joystick[1] = 0;
+  if (inputs.up)    joystick[1]--;
+  if (inputs.down)  joystick[1]++;
+}
+
+function handleKeyDown(e) {
+  if (!e.altKey && !e.ctrlKey && !e.metaKey) e.preventDefault();
+  if (!e.repeat) {
+    switch (e.key) {
+      case 'ArrowLeft'  : inputs.left       = true; break;
+      case 'ArrowRight' : inputs.right      = true; break;
+      case 'ArrowUp'    : inputs.up         = true; break;
+      case 'ArrowDown'  : inputs.down       = true; break;
+      case 'w'          : inputs.paperUp    = true; break;
+      case 's'          : inputs.paperDown  = true; break;
+      case ' ':
+        if (scene === 'title') {
+          scene = 'game';
+          context.font = '32px monospace';
+          backX = 0;
+          showHelp = false;
+        }
+        else {
+          inputs.fire = true;
+        }
+        break;
+      case 'h':
+        if (scene === "title") {
+          showHelp = !showHelp;
+        }
+        break;
+      case 'p': isPaused = !isPaused; break;
+      case 'Escape':
+        // TODO: provide some sort of options menu
+        // switch (scene) {
+        //   case 'game': scene = "options"; break;
+        //   case 'options': scene = "game"; break;
+        // }
+        break;
+    }
+    updateJoystick();
+  }
+}
+function handleKeyUp(e) {
+  switch (e.key) {
+    case 'ArrowLeft'  : inputs.left       = false; break;
+    case 'ArrowRight' : inputs.right      = false; break;
+    case 'ArrowUp'    : inputs.up         = false; break;
+    case 'ArrowDown'  : inputs.down       = false; break;
+    case ' '          : inputs.fire       = false; break;
+    case 'w'          : inputs.paperUp    = false; break;
+    case 's'          : inputs.paperDown  = false; break;
+  }
+  updateJoystick();
+}
+document.addEventListener('keydown', handleKeyDown);
+document.addEventListener('keyup', handleKeyUp);
+
+const DELTA_TIME = 5;
+var accumulator = DELTA_TIME;
+var lastTimestamp = 0;
+var remainingTime = DAY_LENGTH;
+var timeOut = false;
+var frames = 0; // Count frames for animating
+
+function frameStep(timestamp) {
+  // Rendering
+  context.clearRect(0, 0, WINDOW_W, WINDOW_H);
+  // Draw space road
+  context.beginPath();
+  context.moveTo(0, MIN_Y);
+  context.lineTo(WINDOW_W, MIN_Y);
+  context.moveTo(0, MAX_Y);
+  context.lineTo(WINDOW_W, MAX_Y);
+  for (var x = 1 - (backX % 96); x < WINDOW_W; x += 96) {
+    context.moveTo(x,      WINDOW_H / 2);
+    context.lineTo(x + 40, WINDOW_H / 2);
+  }
+  context.stroke();
+  context.closePath();
+
+  // Run updates based on time since last frame
+  accumulator += timestamp - lastTimestamp;
+  lastTimestamp = timestamp;
+
+  switch (scene) {
+    case "title":
+      while (accumulator >= DELTA_TIME) {
+        // Update background position
+        backX += BACK_SPEED;
+        if (backX > MAX_BACK_X) backX -= MAX_BACK_X;
+
+        accumulator -= DELTA_TIME;
+      }
+
+      context.font = "128px Shrikhand, monospace";
+      context.fillText("Paper Boy", 64, MIN_Y + 120);
+      context.font = "64px Audiowide, monospace";
+      context.fillText("in the 21st century", 64, MIN_Y + 208);
+      context.font = "40px monospace";
+      if (showHelp) {
+        context.fillText("In the Information Age the newpaper is under constant attack by", 40, WINDOW_H / 2 + 80);
+        context.fillText("more convenient media. Equipped with the latest in newspaper", 40, WINDOW_H / 2 + 128);
+        context.fillText("delivery technology you, the Paper Boy, must fend off portable", 40, WINDOW_H / 2 + 176);
+        context.fillText("radios, television, and social media platforms while ensuring", 40, WINDOW_H / 2 + 224);
+        context.fillText("your loyal subscribers receive their daily paper!", 40, WINDOW_H / 2 + 272);
+        // Controls
+        context.fillText("Arrow keys to move; W and S to launch newspapers up and down", 40, MAX_Y + 48);
+        context.fillText("Spacebar to fire energy bolts at enemies; p to pause / unpause", 40, MAX_Y + 2 * 48);
+        context.fillText("Avoid hitting enemies and their projectiles", 40, MAX_Y + 3 * 48);
+        context.fillText("Serve one paper to every house on the block to win!", 40, MAX_Y + 4 * 48);
+      }
+      else {
+        context.fillText("Press \"h\" for help", 40, WINDOW_H / 2 + 80);
+        context.fillText("Press the spacebar to start", 40, WINDOW_H / 2 + 128);
+      }
+      break;
+    case "game":
+      if (isPaused) {
+        while (accumulator >= DELTA_TIME) {
+          accumulator -= DELTA_TIME;
+        }
+
+        context.fillStyle = "#000";
+        context.fillRect(WINDOW_W / 2 - 96, WINDOW_H / 2 - 40, 192, 80);
+        context.strokeRect(WINDOW_W / 2 - 96, WINDOW_H / 2 - 40, 192, 80);
+        context.fillStyle = "#FFF";
+        context.textAlign = "center";
+        context.fillText("paused", WINDOW_W / 2, WINDOW_H / 2 + 8);
+        context.textAlign = "left";
+      }
+      else {
+        while (accumulator >= DELTA_TIME) {
+          if (!fightBird) {
+            // Update day countdown timer
+            remainingTime -= DELTA_TIME;
+            if (remainingTime <= 0) {
+              // Game over from time out
+              timeOut = true;
+            }
+          }
+
+          // Update background position
+          backX += BACK_SPEED;
+          if (backX > MAX_BACK_X) backX -= MAX_BACK_X;
+
+          var isAlive = !gameOver && (playerFrames === MAX_FRAMES || playerFrames < MAX_FRAMES / 2);
+          if (isAlive) {
+            // Update player velocities
+            if (joystick[0] === 0) {
+              player[2] *= FRICTION;
+            }
+            else {
+              player[2] += joystick[0];
+              if (player[2] >  MAX_SPEED) player[2] =  MAX_SPEED;
+              if (player[2] < -MAX_SPEED) player[2] = -MAX_SPEED;
+            }
+
+            if (joystick[1] === 0) {
+              player[3] *= FRICTION;
+            }
+            else {
+              player[3] += joystick[1];
+              if (player[3] >  MAX_SPEED) player[3] =  MAX_SPEED;
+              if (player[3] < -MAX_SPEED) player[3] = -MAX_SPEED;
+            }
+            // Update player position
+            player[0] += player[2];
+            if (player[0] > WINDOW_W) player[0] = WINDOW_W;
+            else if (player[0] < 0) player[0] = 0;
+
+            player[1] += player[3];
+            if (player[1] > MAX_Y) player[1] = MAX_Y;
+            else if (player[1] < MIN_Y) player[1] = MIN_Y;
+          }
+
+          // Update player frames once hit
+          if (!gameOver && playerFrames < MAX_FRAMES) {
+            var destroyed = playerFrames > MAX_FRAMES / 2;
+            playerFrames -= DELTA_TIME;
+            if (destroyed && playerFrames < MAX_FRAMES / 2) {
+              if (playerLives >= 0) {
+                // Reposition
+                player[0] = START_X;
+                player[1] = START_Y;
+              }
+              else {
+                // Game over
+                gameOver = true;
+                // Remove player bolts and papers in transit?
+              }
+            }
+            if (playerFrames < 0) {
+              // Respawn
+              playerFrames = MAX_FRAMES;
+            }
+          }
+
+          // Update boomboxes
+          var dist = 0.0;
+          var rad = 0.0;
+          var xVel = 0.0;
+          var yVel = 0.0;
+          for (var i = 0; i < Boombox.MAX; i++) {
+            if (boomboxes[i].frames === Boombox.FRAMES) {
+              if (timeOut) {
+                if (boomboxes[i].isVisible()) {
+                  // Fly off screen
+                  boomboxes[i].pos[0]++;
+                  boomboxes[i].pos[1] += boomboxes[i].dir;
+                }
+              }
+              else {
+                // Move towards player and orbit
+                dist = squaredDistance(boomboxes[i].pos, player);
+                var xDist = player[0] - boomboxes[i].pos[0];
+                var yDist = player[1] - boomboxes[i].pos[1];
+                rad = Math.atan2(yDist, xDist);
+                var sin = Math.sin(rad);
+                var cos = Math.cos(rad);
+                // Some way to calculate velocity without arctan?
+                // var xAcc = yDist === 0 ? 0 : (xDist / yDist);
+                // var yAcc = xDist === 0 ? 0 : (yDist / xDist);
+                if (dist > Boombox.ORBIT_DIST_SQ) {
+                  xVel = 1.5 * cos;
+                  yVel = 1.5 * sin;
+                }
+                else {
+                  if (boomboxes[i].dir === 1) {
+                    xVel = MAX_SPEED *  sin / 2;
+                    yVel = MAX_SPEED * -cos / 2;
+                  }
+                  else {
+                    xVel = MAX_SPEED * -sin / 2;
+                    yVel = MAX_SPEED *  cos / 2;
+                  }
+                }
+                boomboxes[i].pos[0] += xVel;
+                boomboxes[i].pos[1] += yVel;
+
+                if (boomboxes[i].pos[1] < MIN_Y + Boombox.H / 2) {
+                  boomboxes[i].pos[1] = MIN_Y + Boombox.H / 2;
+                }
+                else if (boomboxes[i].pos[1] > MAX_Y - Boombox.H / 2) {
+                  boomboxes[i].pos[1] = MAX_Y - Boombox.H / 2;
+                }
+
+                // Update fire countdown
+                boomboxes[i].countdown -= DELTA_TIME;
+                if (boomboxes[i].countdown < 0) boomboxes[i].countdown = 0;
+
+                // Fire a pulse if enough time has passed
+                if (!timeOut && boomboxes[i].countdown === 0 && boomboxes[i].pos[0] < WINDOW_W) {
+                  for (var p = 0; p < MAX_ENEMY_PULSES; p++) {
+                    if (enemyPulses[4 * p] === -1) {
+                      enemyPulses[4 * p]     = boomboxes[i].pos[0];
+                      enemyPulses[4 * p + 1] = boomboxes[i].pos[1];
+                      enemyPulses[4 * p + 2] = (MAX_SPEED / 2) * cos;
+                      enemyPulses[4 * p + 3] = (MAX_SPEED / 2) * sin;
+                      break;
+                    }
+                  }
+                  boomboxes[i].countdown = Boombox.FIRE_DELAY;
+                }
+              }
+
+              // Check for collision with player
+              if (playerFrames === MAX_FRAMES && boomboxes[i].collidesWithPoint(player)) {
+                playerFrames--;
+                playerLives--;
+              }
+            }
+            else if (boomboxes[i].frames > 0) {
+              boomboxes[i].frames -= DELTA_TIME;
+              if (boomboxes[i].frames < 0) boomboxes[i].frames = 0;
+            }
+            else if (!fightBird) {
+              boomboxes[i].respawn();
+            }
+          }
+
+          // Update tv sets
+          for (var i = 0; i < TVSet.MAX; i++) {
+            if (tvSets[i].frames === TVSet.FRAMES) {
+              if (timeOut) {
+                // Fly off screen
+                if (tvSets[i].isVisible()) {
+                  if (tvSets[i].vel[0] <= 0) {
+                    tvSets[i].vel[0] = 1;
+                    tvSets[i].vel[1] = (2 * (Math.random() >> 0)) - 1;
+                  }
+                  tvSets[i].pos[0] += tvSets[i].vel[0];
+                  tvSets[i].pos[1] += tvSets[i].vel[1];
+                }
+              }
+              else {
+                tvSets[i].pos[0] += tvSets[i].vel[0];
+                tvSets[i].pos[1] += tvSets[i].vel[1];
+
+                if (tvSets[i].pos[0] < tvSets[i].xTarget) {
+                  tvSets[i].pos[0] = tvSets[i].xTarget;
+                  tvSets[i].vel[0] = 0;
+                  tvSets[i].vel[1] = (2 * (Math.random() >> 0)) - 1;
+                }
+
+                if (tvSets[i].pos[1] < MIN_Y + TVSet.H / 2) {
+                  tvSets[i].pos[1] = MIN_Y + TVSet.H / 2;
+                  tvSets[i].vel[1] *= -1;
+                }
+                else if (tvSets[i].pos[1] > MAX_Y - TVSet.H / 2) {
+                  tvSets[i].pos[1] = MAX_Y - TVSet.H / 2;
+                  tvSets[i].vel[1] *= -1;
+                }
+
+                // Only fire spread shot if reached destination
+                if (tvSets[i].vel[0] === 0) {
+                  // Update fire countdown
+                  tvSets[i].countdown -= DELTA_TIME;
+                  if (tvSets[i].countdown < 0) tvSets[i].countdown = 0;
+                  // Fire 3 spread shot if enough time has passed
+                  if (tvSets[i].countdown === 0) {
+                    var numOfSpread = 0;
+                    for (var s = 0; s < MAX_ENEMY_SPREAD; s++) {
+                      if (enemySpread[4 * s] === -1) {
+                        var xVel = numOfSpread === 0 ? -2.0 : -1.8;
+                        var yVel;
+                        switch (numOfSpread) {
+                          case 0: yVel =  0.0; break;
+                          case 1: yVel = -0.8; break;
+                          case 2: yVel =  0.8; break;
+                        }
+
+                        enemySpread[4 * s]     = tvSets[i].pos[0];
+                        enemySpread[4 * s + 1] = tvSets[i].pos[1];
+                        enemySpread[4 * s + 2] = xVel;
+                        enemySpread[4 * s + 3] = yVel;
+
+                        if (++numOfSpread === 3) {
+                          break;
+                        }
+                      }
+                    }
+                    tvSets[i].countdown = TVSet.FIRE_DELAY;
+                  }
+                }
+              }
+
+              // Check for collision with player
+              if (playerFrames === MAX_FRAMES && tvSets[i].collidesWithPoint(player)) {
+                playerFrames--;
+                playerLives--;
+              }
+            }
+            else if (tvSets[i].frames > 0) {
+              tvSets[i].frames -= DELTA_TIME;
+              if (tvSets[i].frames < 0) tvSets[i].frames = 0;
+            }
+            else if (!fightBird) {
+              tvSets[i].respawn();
+            }
+          }
+
+          if (fightBird) {
+            // Update bird
+            bird[0] += bird[2];
+            bird[1] += bird[3];
+
+            if (bird[1] < MIN_Y + 144) {
+              bird[1] = MIN_Y + 144;
+              bird[3] *= -1
+            }
+            else if (bird[1] > MAX_Y - 144) {
+              bird[1] = MAX_Y - 144;
+              bird[3] *= -1
+            }
+
+            // Check for collisions with player
+            if (playerFrames === MAX_FRAMES && (birdCollidesWithPoint(player) || laserCollidesWithPoint(player))) {
+              playerFrames--;
+              playerLives--;
+            }
+
+            if (birdStage === "entrance") {
+              if (bird[0] < BIRD_MAX_X) {
+                bird[0] = BIRD_MAX_X;
+                bird[2] = 0;
+                bird[3] = 2 * (Math.random() >> 0) - 1;
+                birdStage = 'letters';
+              }
+            }
+            else {
+              if (birdCountdown > 0) {
+                // Handle behavior for stage
+                birdCountdown -= DELTA_TIME
+                switch (birdStage) {
+                  case "letters":
+                    birdCharCountdown -= DELTA_TIME;
+                    if (birdCharCountdown <= 0) {
+                      birdCharCountdown += BIRD_CHAR_DELAY;
+                      // Fire two bird chars, one above and the other below the bird's center
+                      var y = -104;
+                      for (var i = 0; i < BirdChar.MAX; i++) {
+                        if (!enemyChars[i] || !enemyChars[i].alive) {
+                          enemyChars[i] = new BirdChar(bird[0] - 104, bird[1] + y);
+
+                          if (y === -104) {
+                            y = 104;
+                          }
+                          else {
+                            break;
+                          }
+                        }
+                      }
+                    }
+                    break;
+                }
+              }
+              else {
+                // Change stage
+                switch (birdStage) {
+                  case 'letters':
+                    var yDist = bird[1] - WINDOW_H / 2;
+                    if (yDist > -2 && yDist < 2) {
+                      birdStage = 'charge';
+                      bird[3] = 0;
+                      bird[1] = WINDOW_H / 2;
+                      birdCountdown = CHARGE_DELAY;
+                    }
+                    break;
+                  case 'charge':
+                    bird[2] = -16;
+                    birdStage = 'recoil';
+                    break;
+                  case 'recoil':
+                    if (bird[2] < 0 && bird[0] < BIRD_MIN_X) {
+                      bird[2] = 6;
+                    }
+                    if (bird[2] > 0 && bird[0] >= BIRD_MAX_X) {
+                      bird[2] = 0;
+                      bird[0] = BIRD_MAX_X;
+                      birdStage = 'charging tweet';
+                      // birdCountdown = RECOIL_DELAY;
+                      birdCountdown = TWEET_DELAY;
+                    }
+                    break;
+                  case 'charging tweet':
+                    // Fire tweet
+                    birdStage = 'firing tweet';
+                    birdCountdown = TWEET_DURATION;
+                    break;
+                  case 'firing tweet':
+                    birdStage = 'fired tweet';
+                    birdCountdown = TWEET_DELAY;
+                    break;
+                  case 'fired tweet':
+                    birdStage = "letters";
+                    bird[3] = 2 * (Math.random() >> 0) - 1;
+                    birdCountdown = LETTER_DELAY;
+                    break;
+                }
+              }
+            }
+
+            // Update enemy chars
+            for (var i = 0; i < BirdChar.MAX; i++) {
+              if (enemyChars[i] && enemyChars[i].alive) {
+                enemyChars[i].pos[0] -= 5;
+                if (enemyChars[i].pos[0] < 0) {
+                  enemyChars[i].alive = false;
+                }
+                else {
+                  // Check for player collisions
+                  if (enemyChars[i].collidesWithPoint(player)) {
+                    enemyChars[i].alive = false;
+                    playerFrames--;
+                    playerLives--;
+                  }
+                }
+              }
+            }
+          }
+
+          // Update fire countdown
+          fireCountdown -= DELTA_TIME;
+          if (fireCountdown < 0) fireCountdown = 0;
+          // Update paper launch countdown
+          paperCountdown -= DELTA_TIME;
+          if (paperCountdown < 0) paperCountdown = 0;
+
+          if (isAlive) {
+            // Fire a bolt if enough time has passed since the last one
+            if (fireCountdown === 0 && inputs.fire) {
+              for (var i = 0; i < MAX_BOLTS; i++) {
+                if (playerBolts[2 * i] === -1) {
+                  playerBolts[2 * i]     = player[0];
+                  playerBolts[2 * i + 1] = player[1];
+                  fireCountdown = FIRE_DELAY;
+                  break;
+                }
+              }
+            }
+            // Launch a paper if enough time has passed
+            if (paperAmmo > 0 && paperCountdown === 0 && (inputs.paperUp || inputs.paperDown)) {
+              for (var i = 0; i < MAX_PAPERS; i++) {
+                if (papers[3 * i] === -1) {
+                  papers[3 * i]     = player[0];
+                  papers[3 * i + 1] = player[1];
+                  papers[3 * i + 2] = MAX_SPEED * (inputs.paperDown ? 1.5 : -1.5);
+                  paperCountdown = PAPER_DELAY;
+                  paperAmmo--;
+                  break;
+                }
+              }
+            }
+          }
+
+          // Update player bolts
+          for (var i = 0; i < MAX_BOLTS; i++) {
+            if (playerBolts[2 * i] !== -1) {
+              playerBolts[2 * i] += 2 * MAX_SPEED;
+              if (playerBolts[2 * i] > WINDOW_W) {
+                playerBolts[2 * i] = -1;
+              }
+              else {
+                // Check collisions with boomboxes
+                var boltRect = { l: playerBolts[2 * i] - 2, r: playerBolts[2 * i] + 2, t: playerBolts[2 * i + 1] - 2, b: playerBolts[2 * i + 1] + 2 };
+                for (var b = 0; b < Boombox.MAX; b++) {
+                  if (boomboxes[b].frames === Boombox.FRAMES && boomboxes[b].collidesWithRect(boltRect)) {
+                    scores.enemies++;
+                    boomboxes[b].frames--;
+                    playerBolts[2 * i] = -1;
+                    break;
+                  }
+                }
+                // Collisions with tv sets
+                if (playerBolts[2 * i] !== -1) {
+                  for (var t = 0; t < TVSet.MAX; t++) {
+                    if (tvSets[t].frames === TVSet.FRAMES && tvSets[t].collidesWithRect(boltRect)) {
+                      scores.enemies++;
+                      tvSets[t].frames--;
+                      playerBolts[2 * i] = -1;
+                      break;
+                    }
+                  }
+                }
+                // Collisions with bird
+                if (fightBird && playerBolts[2 * i] !== -1 && birdCollidesWithRect(boltRect)) {
+                  birdLife--;
+                  playerBolts[2 * i] = -1;
+                  // Victory condition
+                  if (birdLife === 0) {
+                    scene = "victory";
+                    // Calculate score
+                    scores.lives = playerLives * LIVES_MULTIPLIER;
+                    scores.papers = paperAmmo * PAPERS_MULTIPLIER;
+                    scores.time = remainingTime * TIME_MULTIPLIER >> 0;
+                    scores.total = scores.lives + scores.enemies + scores.papers + scores.time;
+                    // Update high score
+                    if (saveData.highscore < scores.total) {
+                      saveData.highscore = scores.total;
+                      save();
+                    }
+                  }
+                }
+              }
+            }
+          }
+          // Update papers
+          for (var i = 0; i < MAX_PAPERS; i++) {
+            if (papers[3 * i] !== -1) {
+              papers[3 * i + 1] += papers[3 * i + 2];
+              // Collisions
+              if (papers[3 * i + 1] < 0 || papers[3 * i + 1] > WINDOW_H) {
+                papers[3 * i] = -1;
+              }
+              else {
+                // Check for collision with the visible house
+                var paperRect = {
+                  l: papers[3 * i],
+                  r: papers[3 * i] + PAPER_W,
+                  t: papers[3 * i + 1],
+                  b: papers[3 * i + 1] + PAPER_H
+                };
+                // Skip checking house collisions if in fightBird mode
+                if (!fightBird) {
+                  for (var h = 0; h < HOUSE_COUNT; h++) {
+                    if (backX > houses[h].pos[0] - WINDOW_W && backX < houses[h].pos[0] + House.W) {
+                      if (!houses[h].served) {
+                        var houseRect = {
+                          l: houses[h].pos[0] - backX,
+                          r: houses[h].pos[0] - backX + House.W,
+                          t: houses[h].pos[1],
+                          b: houses[h].pos[1] + House.H
+                        };
+                        if (doRectsCollide(paperRect, houseRect)) {
+                          houses[h].served = true;
+                          papers[3 * i] = -1;
+                          // Check whether all houses have been served
+                          if (House.areAllServed()) {
+                            // Go to boss mode
+                            fightBird = true;
+                            // Kill offscreen enemies so we only have to deal with those remaining on screen
+                            for (var b = 0; b < Boombox.MAX; b++) {
+                              if (boomboxes[b].frames === Boombox.FRAMES && !boomboxes[b].isVisible()) {
+                                boomboxes[b].frames = 0;
+                              }
+                            }
+                            for (var t = 0; t < TVSet.MAX; t++) {
+                              if (tvSets[t].frames === TVSet.FRAMES && !tvSets[t].isVisible()) {
+                                tvSets[t].frames = 0;
+                              }
+                            }
+                          }
+                          break;
+                        }
+                      }
+                    }
+                  }
+                  if (fightBird) {
+                    for (var h = 0; h < HOUSE_COUNT; h++) {
+                      if (!houses[h].isVisible()) {
+                        houses[h].show = false;
+                      }
+                    }
+                  }
+                }
+                if (papers[3 * i] === -1) continue;
+                // Collisions with boomboxes
+                for (var b = 0; b < Boombox.MAX; b++) {
+                  if (boomboxes[b].isVisible() && boomboxes[b].collidesWithRect(paperRect)) {
+                    scores.enemies++;
+                    boomboxes[b].frames--;
+                  }
+                }
+                // Collisions with tv sets
+                for (var t = 0; t < TVSet.MAX; t++) {
+                  if (tvSets[t].isVisible() && tvSets[t].collidesWithRect(paperRect)) {
+                    scores.enemies++;
+                    tvSets[t].frames--;
+                  }
+                }
+              }
+            }
+          }
+
+          // Update enemy pulses
+          for (var i = 0; i < MAX_ENEMY_PULSES; i++) {
+            if (enemyPulses[4 * i] !== -1) {
+              enemyPulses[4 * i]     += enemyPulses[4 * i + 2];
+              enemyPulses[4 * i + 1] += enemyPulses[4 * i + 3];
+              if (enemyPulses[4 * i] < 0 || enemyPulses[4 * i] > WINDOW_W || enemyPulses[4 * i + 1] < 0 || enemyPulses[4 * i + 1] > WINDOW_H) {
+                enemyPulses[4 * i] = -1;
+              }
+              else if (playerFrames === MAX_FRAMES && isPointInSquare(player, enemyPulses[4 * i], enemyPulses[4 * i +1], PULSE_SIZE)) {
+                enemyPulses[4 * i] = -1;
+                // Damage player
+                playerFrames--;
+                playerLives--;
+              }
+            }
+          }
+
+          // Update enemy spread
+          for (var i = 0; i < MAX_ENEMY_SPREAD; i++) {
+            if (enemySpread[4 * i] !== -1) {
+              enemySpread[4 * i]     += enemySpread[4 * i + 2];
+              enemySpread[4 * i + 1] += enemySpread[4 * i + 3];
+              if (enemySpread[4 * i] < 0 || enemySpread[4 * i] > WINDOW_W || enemySpread[4 * i + 1] < 0 || enemySpread[4 * i + 1] > WINDOW_H) {
+                enemySpread[4 * i] = -1;
+              }
+              else if (playerFrames === MAX_FRAMES && isPointInSquare(player, enemySpread[4 * i], enemySpread[4 * i +1], SPREAD_SIZE)) {
+                enemySpread[4 * i] = -1;
+                // Damage player
+                playerFrames--;
+                playerLives--;
+              }
+            }
+          }
+
+          accumulator -= DELTA_TIME;
+        }
+
+        // Rendering
+        // Draw houses
+        for (var i = 0; i < HOUSE_COUNT; i++) {
+          if (houses[i].isVisible()) {
+            houses[i].render(i);
+          }
+          else if (fightBird && houses[i].show) {
+            houses[i].show = false;
+          }
+        }
+
+        // Draw boomboxes
+        for (var i = 0; i < Boombox.MAX; i++) {
+          if (boomboxes[i].isVisible()) {
+            if (boomboxes[i].frames === Boombox.FRAMES) {
+              // context.strokeRect(boomboxes[i].pos[0] - Boombox.W / 2, boomboxes[i].pos[1] - Boombox.H / 2, Boombox.W, Boombox.H);
+              boomboxes[i].render();
+            }
+            else if (boomboxes[i].frames > 0) {
+              // Boombox exploding
+              context.beginPath();
+              context.arc(boomboxes[i].pos[0], boomboxes[i].pos[1], 32 * (Boombox.FRAMES - boomboxes[i].frames) / Boombox.FRAMES, 0, TAU);
+              context.stroke();
+              context.closePath();
+            }
+          }
+        }
+
+        // Draw tv sets
+        for (var i = 0; i < TVSet.MAX; i++) {
+          if (tvSets[i].isVisible()) {
+            if (tvSets[i].frames === TVSet.FRAMES) {
+              // context.strokeRect(tvSets[i].pos[0] - TVSet.W / 2, tvSets[i].pos[1] - TVSet.H / 2, TVSet.W, TVSet.H);
+              tvSets[i].render();
+            }
+            else if (tvSets[i].frames > 0) {
+              // TV set exploding
+              context.beginPath();
+              context.arc(tvSets[i].pos[0] + 16, tvSets[i].pos[1] + 16, 32 * (TVSet.FRAMES - tvSets[i].frames) / TVSet.FRAMES, 0, TAU);
+              context.stroke();
+              context.closePath();
+            }
+          }
+        }
+
+        // Draw player
+        if (!gameOver) {
+          if (playerFrames === MAX_FRAMES || (playerFrames < MAX_FRAMES / 2 && frames % 16 < 8)) {
+            var rad = player[3] * 0.1;
+            var path = getRenderPath(PLAYER_PATH, player, rad);
+            context.beginPath();
+            context.moveTo(path[0], path[1]);
+            for (var i = 2; i < path.length; i += 2) {
+              context.lineTo(path[i], path[i + 1]);
+            }
+            context.closePath();
+            context.stroke();
+
+            // Draw jets
+            path = getRenderPath(frames % 8 < 4 ? PLAYER_JET_LOW : PLAYER_JET_HI, player, rad);
+            context.beginPath();
+            context.moveTo(path[0], path[1]);
+            for (var i = 2; i < path.length; i += 2) {
+              context.lineTo(path[i], path[i + 1]);
+            }
+            context.closePath();
+            context.stroke();
+          }
+          else if (playerFrames > MAX_FRAMES / 4) {
+            context.beginPath();
+            context.arc(player[0], player[1], 32 * (MAX_FRAMES - playerFrames) / MAX_FRAMES, 0, TAU);
+            context.stroke();
+            context.closePath();
+          }
+        }
+        // Draw player bolts
+        for (var i = 0; i < MAX_BOLTS; i++) {
+          if (playerBolts[2 * i] !== -1) {
+            context.strokeRect(playerBolts[2 * i] - 2, playerBolts[2 * i + 1] - 2, 4, 4);
+          }
+        }
+        // Draw papers
+        for (var i = 0; i < MAX_PAPERS; i++) {
+          if (papers[3 * i] !== -1) {
+            context.strokeRect(papers[3 * i], papers[3 * i + 1], PAPER_W, PAPER_H);
+          }
+        }
+        // Draw enemy pulses
+        for (var i = 0; i < MAX_ENEMY_PULSES; i++) {
+          if (enemyPulses[4 * i] !== -1) {
+            context.strokeRect(enemyPulses[4 * i] - PULSE_SIZE, enemyPulses[4 * i + 1] - PULSE_SIZE, 2 * PULSE_SIZE, 2 * PULSE_SIZE);
+          }
+        }
+        // Draw enemy spread shot
+        for (var i = 0; i < MAX_ENEMY_SPREAD; i++) {
+          if (enemySpread[4 * i] !== -1) {
+            context.strokeRect(enemySpread[4 * i] - SPREAD_SIZE, enemySpread[4 * i + 1] - SPREAD_SIZE, 2 * SPREAD_SIZE, 2 * SPREAD_SIZE);
+          }
+        }
+        // Draw bird
+        if (bird[0] - 64 < WINDOW_W) {
+          renderBird();
+        }
+        // Draw bird chars
+        context.textAlign = "center";
+        // This doesn't work??
+        // for (var i = 0; i < BirdChar.Max; i++) {
+        //   if (enemyChars[i] && enemyChars[i].alive) {
+        //     enemyChars[i].render();
+        //   }
+        // }
+        enemyChars.forEach(function(char) {
+          if (char && char.alive) {
+            char.render();
+          }
+        });
+        context.textAlign = "left";
+      }
+
+      // UI
+      context.font = "32px monospace";
+      // Paper ammo
+      context.fillText("Papers: " + paperAmmo, 32, 32);
+      // Lives
+      var x = WINDOW_W / 4;
+      var y = 40;
+      for (var i = 0; i < playerLives; i++) {
+        context.beginPath();
+        context.moveTo(x + PLAYER_PATH[1], y - PLAYER_PATH[0]);
+        for (var p = 0; p < PLAYER_PATH.length; p += 2) {
+          context.lineTo(x + PLAYER_PATH[p + 1], y - PLAYER_PATH[p]);
+        }
+        context.closePath();
+        context.stroke();
+        x += 40;
+      }
+      // Time
+      if (remainingTime > 0) {
+        var minutes = (remainingTime / 60000 >> 0).toString();
+        if (minutes < 10) minutes = "0" + minutes;
+
+        var seconds = ((remainingTime / 1000 >> 0) % 60).toString();
+        if (seconds < 10) seconds = "0" + seconds;
+
+        var milliseconds = (remainingTime % 1000).toString();
+        if (milliseconds < 10) milliseconds = "00" + milliseconds;
+        else if (milliseconds < 100) milliseconds = "0" + milliseconds;
+        context.fillText("Time remaining " + minutes + ":" + seconds + ";" + milliseconds, WINDOW_W - 512, 32);
+      }
+      else {
+        context.fillText("Time remaining 00:00;000", WINDOW_W - 512, 32);
+      }
+
+      if (gameOver) {
+        context.font = "96px monospace";
+        context.textAlign = 'center';
+        context.fillText("Game Over", WINDOW_W / 2, WINDOW_H / 2 - 16);
+
+        context.font = "32px monospace";
+        context.fillText("No more lives!", WINDOW_W / 2, WINDOW_H / 2 + 32);
+        context.textAlign = 'left';
+      }
+      else if (timeOut) {
+        context.font = "96px monospace";
+        context.textAlign = 'center';
+        context.fillText("You ran out of time!", WINDOW_W / 2, WINDOW_H / 2);
+
+        context.font = "32px monospace";
+        context.textAlign = 'left';
+      }
+      break;
+    case "victory":
+      while (accumulator >= DELTA_TIME) {
+        // Update background position
+        backX += BACK_SPEED;
+        if (backX > MAX_BACK_X) backX -= MAX_BACK_X;
+
+        // Update bird frames
+        if (birdFrames > 0) {
+          birdFrames -= DELTA_TIME;
+        }
+
+        // Move player off screen
+        if (player[0] < WINDOW_W + 112) {
+          player[0] += 6;
+        }
+
+        accumulator -= DELTA_TIME;
+      }
+
+      // Update score display
+      if (displayScores.lives < scores.lives) {
+        displayScores.lives++;
+        if (displayScores.lives > scores.lives) {
+          displayScores.lives = scores.lives;
+        }
+      }
+      else {
+        if (displayScores.enemies < scores.enemies) {
+          displayScores.enemies++;
+          if (displayScores.enemies > scores.enemies) {
+            displayScores.enemies = scores.enemies;
+          }
+        }
+        else {
+          if (displayScores.papers < scores.papers) {
+            displayScores.papers++;
+            if (displayScores.papers > scores.papers) {
+              displayScores.papers = scores.papers;
+            }
+          }
+          else {
+            if (displayScores.time < scores.time) {
+              displayScores.time += 16;
+              if (displayScores.time > scores.time) {
+                displayScores.time = scores.time;
+              }
+            }
+            else {
+              if (displayScores.total < scores.total) {
+                displayScores.total += 24;
+                if (displayScores.total > scores.total) {
+                  displayScores.total = scores.total;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Draw bird
+      if (birdFrames > BIRD_FRAMES / 2) {
+        renderBird();
+      }
+      if (birdFrames > 0) {
+        context.beginPath();
+        context.arc(bird[0], bird[1], 128 * (1 - birdFrames / BIRD_FRAMES), 0, TAU);
+        context.stroke();
+        context.closePath();
+      }
+      // Draw player
+      var path = getRenderPath(PLAYER_PATH, player, 0);
+      context.beginPath();
+      context.moveTo(path[0], path[1]);
+      for (var i = 2; i < path.length; i += 2) {
+        context.lineTo(path[i], path[i + 1]);
+      }
+      context.closePath();
+      context.stroke();
+      // Draw jets
+      path = getRenderPath(frames % 8 < 4 ? PLAYER_JET_LOW : PLAYER_JET_HI, player, rad);
+      context.beginPath();
+      context.moveTo(path[0], path[1]);
+      for (var i = 2; i < path.length; i += 2) {
+        context.lineTo(path[i], path[i + 1]);
+      }
+      context.closePath();
+      context.stroke();
+      // Draw victory message
+      context.font = "128px Shrikhand, monospace";
+      context.textAlign = "center";
+      context.fillText("You win!", WINDOW_W / 2, MIN_Y + 120);
+      context.font = "64px Audiowide, monospace";
+      context.fillText("Well done, Paper Boy", WINDOW_W / 2, MIN_Y + 208);
+      // Draw score
+      context.font = "40px monospace";
+      context.textAlign = "left";
+      context.fillText("Lives:",    WINDOW_W / 2 - 180, WINDOW_H / 2 + 64);
+      context.fillText("Enemies:",  WINDOW_W / 2 - 180, WINDOW_H / 2 +120);
+      context.fillText("Papers:",   WINDOW_W / 2 - 180, WINDOW_H / 2 +176);
+      context.fillText("Time:",     WINDOW_W / 2 - 180, WINDOW_H / 2 +232);
+      context.fillText("Total:",    WINDOW_W / 2 - 180, WINDOW_H / 2 +302);
+
+      context.textAlign = "right";
+      context.fillText(displayScores.lives,   WINDOW_W / 2 + 180, WINDOW_H / 2 + 64);
+      context.fillText(displayScores.enemies, WINDOW_W / 2 + 180, WINDOW_H / 2 +120);
+      context.fillText(displayScores.papers,  WINDOW_W / 2 + 180, WINDOW_H / 2 +176);
+      context.fillText(displayScores.time,    WINDOW_W / 2 + 180, WINDOW_H / 2 +232);
+      context.fillText(displayScores.total,   WINDOW_W / 2 + 180, WINDOW_H / 2 +302);
+
+      // Score
+      break;
+    case "options":
+      while (accumulator >= DELTA_TIME) {
+        // Update cursor position
+
+        accumulator -= DELTA_TIME;
+      }
+      break;
+  }
+
+  if (!showHelp) {
+    context.font = "32px monospace";
+    context.fillText("High Score: " + saveData.highscore, 32, WINDOW_H - 32);
+  }
+
+  frames++;
+  // Pause recursion if the user leaves the tab
+  if(!frameStart){var frameStart=timestamp}if(timestamp-frameStart<2000)window.requestAnimationFrame(frameStep);
+}
+window.requestAnimationFrame(frameStep);
+})();
+
+
+
+
+js
