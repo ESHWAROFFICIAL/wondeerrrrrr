@@ -1,0 +1,325 @@
+<div class="play-area">
+  
+  <div class="court court-left">
+    <div class="wall gone" id="wall-left">
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+    </div>
+    <div class="score gone" id="score-left">0</div>
+    <div class="paddle gone" id="paddle-left"></div>
+  </div>
+  <div class="court court-right">
+    <div class="score gone" id="score-right">0</div>
+    <div class="wall gone" id="wall-right">
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+      <span>🔥</span>
+    </div>
+    <div class="paddle gone" id="paddle-right"></div>
+  </div>
+  
+  <div class="ball"></div>
+</div>
+<button role="button" class="play-btn">PLAY</button>
+
+<audio controls="controls" id="audio-hit">
+  <source src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1145795/pong_beeep.wav" type="audio/wav">
+</audio>
+<audio controls="controls" id="audio-miss">
+  <source src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1145795/pong_peeeeeep.wav" type="audio/wav">
+</audio>
+
+
+
+
+
+html
+
+
+
+$dark: #333;
+$darker: #1c1c1c;
+$darkest: #000;
+$light: #fff;
+
+html { box-sizing: border-box; } *, *::before, *::after { box-sizing: inherit; }
+html {
+  height: 100vh;
+}
+body {
+  font-family: 'Press Start 2P', cursive;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $darkest;
+}
+audio {
+  display: none;
+}
+.play-area {
+  background: $darker;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 700px;
+  height: 600px;
+}
+.court {
+  position: relative;
+  text-align: center;
+  display: grid;
+}
+.court-left {
+  /* the left column is for when the ball is 'out' */
+  padding-right: 2px;
+  grid-template-columns: 30px 1fr;
+  background-image: linear-gradient(to bottom, $light 50%, $darker 50%);
+  background-position: right top;
+  background-repeat: repeat-y;
+  background-size: 2px 20px;
+}
+.court-right {
+  /* the right column is for when the ball is 'out' */
+  grid-template-columns: 1fr 30px;
+}
+.wall {
+  background: $dark;
+  width: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: stretch;
+  padding: 5px 0;
+  fonr-size: 20px;
+  overflow: hidden;
+  text-align: center;
+}
+.gone {
+  pointer-events: none;
+  opacity: 0;
+}
+
+.paddle, .ball {
+  position: absolute;
+}
+.paddle {
+  width: 30px;
+  height: 80px;
+  background: $light;
+}
+#paddle-left {
+  left: 0;
+}
+#paddle-right {
+  right: 0;
+}
+
+.score {
+  background: $darker;
+  color: $light;
+  font-size: 40px;
+  padding-top: 20px;
+}
+
+.play-btn {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Press Start 2P', cursive;
+  padding: 20px 40px;
+  font-size: 25px;
+  background: $darkest;
+  color: $light;
+  border: 2px solid $light;
+  cursor: pointer;
+  &:hover {
+    background: $light;
+    color: $darkest;
+  }
+}
+
+ //This bit replaces the cursor with a base64 version of a 6x6px white square. I could have replaxced the cursor using a div via JS (in conjunction with cursor: none) but that could have created lag due to mousemove listener, this way seems snappier.
+.play-area { 
+  cursor: url('data:image/png;base64,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'), auto;
+}
+
+
+
+
+css
+
+
+
+
+let leftsTurn = true;
+let paddleSize = 70;
+let difficulty = 0.1;
+let score = 0;
+const walls = document.querySelectorAll('.wall');
+const paddles = document.querySelectorAll('.paddle');
+const paddleLeft = document.getElementById('paddle-left');
+const paddleRight = document.getElementById('paddle-right');
+const wallLeft = document.getElementById('wall-left');
+const wallRight = document.getElementById('wall-right');
+const scoreLeft = document.getElementById('score-left');
+const scoreRight = document.getElementById('score-right');
+const playBtn = document.querySelector('.play-btn');
+const audioHit = document.getElementById('audio-hit');
+const audioMiss = document.getElementById('audio-miss');
+
+function reset() {
+  leftsTurn = true;
+  paddleSize = 70;
+  difficulty = 0.1;
+  score = 0;
+  scoreLeft.classList.remove('gone');
+  scoreRight.classList.remove('gone');
+  wallLeft.classList.add('gone');
+  paddleLeft.classList.add('gone');
+  wallRight.classList.remove('gone');
+  paddleRight.classList.remove('gone');
+  playBtn.style.display = 'none';
+}
+
+function gameOver() {
+
+  audioMiss.play();
+  wallRight.classList.add('gone');
+  paddleRight.classList.add('gone');
+  wallLeft.classList.add('gone');
+  paddleLeft.classList.add('gone');
+
+
+  if (score > 10) {
+    playBtn.innerHTML = `🎉 ${score}pts 🎉`;
+  } else {
+    playBtn.innerHTML = '🙈🙈🙈'
+  }
+
+  playBtn.style.display = 'block';
+  setTimeout(() => {
+    playBtn.innerHTML = 'PLAY'
+  }, 2000)
+}
+
+function switchTurns() {
+
+  score++;
+
+  leftsTurn = !leftsTurn;
+
+  audioHit.play();
+
+  if (leftsTurn) {
+    wallLeft.classList.add('gone');
+    paddleLeft.classList.add('gone');
+    wallRight.classList.remove('gone');
+    paddleRight.classList.remove('gone');
+  } else {
+    wallRight.classList.add('gone');
+    paddleRight.classList.add('gone');
+    wallLeft.classList.remove('gone');
+    paddleLeft.classList.remove('gone');
+  }
+
+  if (score > 20) {
+    difficulty = 0.4;
+  } else if (score > 10) {
+    difficulty = 0.25;
+    paddleSize = 50;
+  } else if (score > 5) {
+    difficulty = 0.15;
+    paddleSize = 60;
+  }
+
+  $('.paddle').css('height', paddleSize);
+
+}
+
+movePaddles();
+
+playBtn.addEventListener('click', () =>{
+  reset();
+});
+
+Array.from(paddles).forEach(function(paddle) {
+  paddle.addEventListener('mouseenter', function(e) {
+    switchTurns();
+  })
+});
+
+Array.from(walls).forEach(function(wall) {
+  wall.addEventListener('mouseenter', function(e) {
+    if (leftsTurn) {
+      scoreRight.innerHTML = parseFloat(scoreRight.innerHTML) + 1
+    } else {
+      scoreLeft.innerHTML = parseFloat(scoreLeft.innerHTML) + 1
+    }
+    gameOver();
+  })
+});
+
+function newPosition(){
+  var h = $('.play-area').height() - paddleSize;
+  var nh = Math.floor(Math.random() * h);
+  return [nh];  
+}
+
+function movePaddles(){
+  var newPos = newPosition();
+  var oldPos = $('.paddle').offset();
+  var speed = calcSpeed([oldPos.top], newPos);
+
+  //this is basically the only reason I've included jQuery...
+  $('.paddle').animate({ top: newPos[0] }, speed, function(){
+    movePaddles();        
+  });
+};
+
+function calcSpeed(prev, next) {
+  var y = Math.abs(prev[0] - next[0]);
+  var speed = Math.ceil(y/difficulty);
+  return speed;
+}
+
+
+
+
+js
