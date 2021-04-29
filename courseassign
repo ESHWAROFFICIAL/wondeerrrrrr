@@ -1,0 +1,155 @@
+<head>
+  <title>Coursera Assignment</title>
+</head>
+
+<body>
+  <h1><b><em>Dying Arts and Crafts of India</em></b></h1>
+  <p>India has been a land of cultures, traditions and these cultures and traditions innate the creativity that produced the most respected art and crafts in every region and sub regions of this land.</p>
+  <p>With overwhelming desire to pace up with the western economy, it left no space to nourish and carry forward our own legacy.</p>
+  <p>I would like to share information about a few of the Arts and Crafts on this webpage</p>
+  <img class="centerimg" src="https://2.bp.blogspot.com/-5ecBeoLrAzQ/VBE3orbycdI/AAAAAAAAAMA/i3o2eg70h9Q/s1600/PAGE-LEAD-INDIAN-ARTISANS-01.jpg" width=500px />
+  <h2>Some of the Arts I would like mention</h2>
+  <ul>
+    <li>Sanjhi Art</li>
+    <li>Kasuti Embroidery</li>
+    <li>Pattachitra Paintings</li>
+  </ul>
+
+  <table>
+    <tr>
+      <th>Sanjhi Art</th>
+      <th>Kasuti Embroidery</th>
+      <th>Pattachithra Paintings</th>
+    </tr>
+    <tr>
+      <td> <img class="center" src="http://www.ishafoundation.org/blog/wp-content/uploads/2013/10/hands-of-grace-sanjhi-paper-art-9.jpg" width=100>
+        <p>‘Sanjhi’ is a word derived from words like ‘Sajja’, ‘Shringar’ and ‘Sajavat’ which all means ‘decoration’. Sanjhi is a stencil style papercutting art derived from religious ceremonials usually associated with the tradition of Radha & Krishna</p>
+      </td>
+      <td><img class="center" src="https://beautyballs.files.wordpress.com/2012/03/il_fullxfull-247483465.jpg?w=640&h=480" width=75>
+        <p> Kasuti is also believed to be one of the 64 art forms in which the courtesans of 13th century Mysore were versed. Kasuti is formed by the Kannada words for “hand” and “cotton” (Kai and Suti), literally translating to “the handwork of cotton thread.”</p>
+      </td>
+      <td><img class="center" src="http://www.kalanirvanacreatives.com/wp-content/uploads/2013/09/pata.jpg" width=120>
+        <p>Pattachitra is a painting done on canvas, and is manifested by rich colourful application, creative motifs and designs, and portrayal of simple themes, mostly mythological in depiction</p>
+      </td>
+    </tr>
+    <tr>
+      <td> Read more on <a href="http://www.ishafoundation.org/blog/inside-isha/isha-yoga-center/sanjhi-art/"><b><em>Sanjhi Art</em></b></a></td>
+      <td> Read more on <a href="https://en.wikipedia.org/wiki/Kasuti"><b><em>Kasuti Embroidery</em></b></a></td>
+      <td> Read more on <a href="https://en.wikipedia.org/wiki/Pattachitra"><b><em>Pattachithra Painting</em></b></a></td>
+
+  </table>
+
+</body>
+
+
+
+
+html
+
+
+
+body {
+  background-color: #F6AA27;
+  margin: 5;
+    padding: 0;
+}
+
+a {
+  color: #217F05;
+}
+
+h1 {
+  font-family: 'Avant Garde', Avantgarde, 'Century Gothic', CenturyGothic, AppleGothic, sans-serif;
+  text-align: center
+}
+
+table th {
+  text-align: center;
+  font-family: 'Avant Garde', Avantgarde, 'Century Gothic', CenturyGothic, AppleGothic, sans-serif;
+}
+
+table p {
+  color: red;
+  font-family: 'Avant Garde', Avantgarde, 'Century Gothic', CenturyGothic, AppleGothic, sans-serif;
+  text-align: justify;
+  text-justify: inter-word;
+  padding: 6px;
+  font-weight: 600;
+  vertical-align: text-bottom;
+  /*display: table-cell; 
+  vertical-align: middle;*/
+}
+table td{font-family: 'Avant Garde', Avantgarde, 'Century Gothic', CenturyGothic, AppleGothic, sans-serif;
+  text-align: center;
+}
+
+.centerimg {
+  margin: auto;
+  width: 80%;  
+  padding: 100px;
+}
+.center {
+  margin: auto;
+  width: 70%;
+  /*border:3px solid #73AD21;*/
+  
+  padding: 30px;
+}
+
+h2 {
+  font-family: 'Avant Garde', Avantgarde, 'Century Gothic', CenturyGothic, AppleGothic, sans-serif;}
+
+.center {
+  margin: auto;
+  width: 70%;
+  /*border:3px solid #73AD21;*/
+  
+  padding: 30px;
+}
+
+h2 {
+  font-family: 'Avant Garde', Avantgarde, 'Century Gothic', CenturyGothic, AppleGothic, sans-serif;
+}
+
+li {
+  font-family: 'Avant Garde', Avantgarde, 'Century Gothic', CenturyGothic, AppleGothic, sans-serif;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+table,
+td,
+th {
+  border: 1px solid black;
+}
+p{font-family: 'Avant Garde', Avantgarde, 'Century Gothic', CenturyGothic, AppleGothic, sans-serif;}
+
+.area { 
+  width: 300px; 
+  height: 300px; 
+  background-color: #F6AA27; 
+  position: relative;
+}
+
+.tabrow { 
+  position: absolute; 
+  left: 93px; 
+  top: 21px; 
+  width: 135px; 
+  height: 84px; 
+  display: table; 
+}
+
+.tab p {
+  display: table-cell; 
+  vertical-align: middle; 
+  
+  text-align: center; 
+}
+
+
+
+
+css
