@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Greeting Card Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <img src="https://cdn.progradjunior.org/greetn/greetnlogo.svg" alt="">
+    </header>
+    <div class="image-container flex space-evenly">
+        <img id=bg1 onclick="bg1()"
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTKsgOYATA3KKk2zC-BhyiGeAIsTsPuUBVRBII_bUo_069SPUQ_Zqxb3a1PUU2z9-p0QA&usqp=CAU" alt="">
+        <img id=bg2 onclick="bg2()" src="https://www.desktopbackground.org/t/2013/06/05/587484_mothers-day-wishes-hd-wallpapers_4394x2775_h.jpg" alt="">
+        <img id=bg3 onclick="bg3()" src="https://d2gg9evh47fn9z.cloudfront.net/thumb_COLOURBOX19806435.jpg" alt="">
+        <img id=bg4 onclick="bg4()" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQq22usCePFfrIphd43ume2DXClym40aCa8Cw&usqp=CAU" alt="">
+        <img id=bg5 onclick="bg5()" src="https://www.photocase.com/photos/2042939-pink-flowers-row-on-turquoise-dark-background-style-design-photocase-stock-photo-large.jpeg" alt="">
+        <img id=bg6 onclick="bg6()" src="" alt="">
+        <img id=bg7 onclick="bg7()" src="https://cdn1.progressivechurchmedia.com/wp-content/uploads/2017/04/28075858/MothersDay3_5.jpg" alt="">
+        <img id=bg8 onclick="bg8()" src="https://image.freepik.com/free-photo/silhouettes-mother-daughter-against-sunset-sky_179738-313.jpg" alt="">
+    </div>
+  <div class="canvas-container flex space-evenly">
+        <canvas id="canvas" width=700 height=400 style="background-color: rgb(0, 0, 0);">
+        </canvas>
+        <div class="message-container flex space-evenly">
+            <h2>Add a message to your card</h2>
+            <textarea name="message" id="message" cols="30" rows="10"></textarea>
+            <div class="button-container flex space-evenly">
+                <div id="button">Generate card</div>
+            </div>
+        </div>
+    </div>
+  <footer class="flex space-evenly">
+        <div id="clear">Clear</div>
+        <div id="download-button"><a id="download" download="myGreetn.jpg" href="">Download</a></div>
+    </footer>
+    <script src="./app.js"></script>
+</body>
+
+</html>
+
+
+
+
+
+html
+
+
+
+
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #F0F0F0;
+    font-family: 'Poppins',
+        sans-serif;
+}
+
+.flex {
+    display: flex;
+}
+
+.space-evenly {
+    justify-content: space-evenly;
+}
+
+header {
+    height: 100px;
+    margin: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.image-container {
+    min-height: 300px;
+    margin: 2% 0%;
+    align-items: center;
+}
+
+.image-container>img {
+    width: 200px;
+}
+
+.canvas-container {
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+textarea {
+    overflow: auto;
+    outline: none;
+    resize: none;
+    width: 90%;
+    min-width: 300px;
+    height: 100px;
+    font-size: 16px;
+    line-height: 1.5;
+    border-radius: 4px;
+    border: solid 1px rgba(228, 228, 228, 0.3);
+}
+
+#button,
+#clear,
+#download-button {
+    background-color: #f50a5f;
+    color: white;
+    height: 50px;
+    width: 100px;
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 50px;
+    text-align: center;
+
+}
+
+footer {
+    margin-top: 100px;
+}
+
+a {
+    text-decoration: none;
+    color: white;
+}
+
+.message-container {
+    height: 250px;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+@media only screen and (max-width: 600px) {
+    .image-container>img {
+        width: 150px;
+        margin: 5px;
+    }
+
+    .image-container {
+        flex-wrap: wrap;
+    }
+
+    .message-container {
+        align-items: center;
+    }
+
+    #canvas {
+        width: 100vw;
+    }
+
+}
+
+
+
+
+css
+
+
+
+
+// Declaring varaiables
+const download= document.getElementById("download")
+const message= document.getElementById("message")
+const button = document.getElementById("button");
+const clear = document.getElementById("clear");
+
+// Canvas
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+
+// Printing text
+button.onclick = () => {
+    ctx.fillStyle = "white";
+    ctx.font = "30px Poppins";
+    ctx.textAlign = "center";
+    ctx.fillText(message.value, canvas.width / 2, canvas.height / 2);
+}
+
+// Clearing the canvas
+clear.onclick = () => {
+    ctx.clearRect(0, 0, 700, 400);
+}
+
+// Generating background image
+function bg1() {
+    var image = document.getElementById("bg1");
+    ctx.drawImage(image, 0, 0, 700, 400);
+}
+function bg2() {
+    var image = document.getElementById("bg2");
+    ctx.drawImage(image, 0, 0, 700, 400);
+}
+
+function bg3() {
+    var image = document.getElementById("bg3");
+    ctx.drawImage(image, 0, 0, 700, 400);
+}
+
+function bg4() {
+    var image = document.getElementById("bg4");
+    ctx.drawImage(image, 0, 0, 700, 400);
+}
+
+function bg5() {
+    var image = document.getElementById("bg5");
+    ctx.drawImage(image, 0, 0, 700, 400);
+}
+
+function bg6() {
+    var image = document.getElementById("bg6");
+    ctx.drawImage(image, 0, 0, 700, 400);
+}
+
+function bg7() {
+ var image = document.getElementById("bg7");
+    ctx.drawImage(image, 0, 0, 700, 400);
+}
+
+function bg8() {
+    var image = document.getElementById("bg8");
+    ctx.drawImage(image, 0, 0, 700, 400);
+}
+
+
+
+// downloading the Greeting card
+download.onclick = () => {
+    var image = canvas.toDataURL("image/jpg");
+    download.href = image;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+js
